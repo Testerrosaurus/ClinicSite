@@ -1,6 +1,21 @@
 <template>
   <div class="test">
-    <input v-model="input1" />
+    Summary:
+    <input v-model="summary" />
+
+    <br />
+    Date:
+    <input type="date" v-model="date" />
+
+    <br />
+    Time:
+    <select :value="time" @change="timeChanged($event)">
+       <option v-for="val in values" :key="val" :value="val">
+          {{val}}
+        </option>
+    </select>
+
+    <br />
     <button @click="btn1ClickHandler">Register</button>
   </div>
 </template>
@@ -13,14 +28,26 @@ export default {
 
   data() {
     return {
-      input1: ''
+      summary: '',
+      date: '',
+      values: ['10:00', '16:20', '17:40'],
+      time: '16:20'
     }
   },
 
   methods: {
+    timeChanged(event) {
+      this.time = event.target.value
+    },
+
     btn1ClickHandler() {
-      console.log(this.input1)
-      api.setAppointment(this.input1).then(answer => console.log(answer))
+      let info = {
+        summary: this.summary,
+        date: this.date,
+        time: this.time
+      }
+
+      api.setAppointment(info).then(answer => console.log(answer))
     }
   }
 }

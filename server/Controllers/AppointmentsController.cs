@@ -9,6 +9,7 @@ using Google.Apis.Calendar.v3;
 using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
+using System.Globalization;
 
 namespace server.Controllers
 {
@@ -56,20 +57,28 @@ namespace server.Controllers
       return result;
     }
 
-    [HttpPost]
-    public ActionResult<string> SetAppointment([FromBody]string info)
+    public struct AppointmentInfo
     {
+      public string summary;
+      public string date;
+      public string time;
+    }
+
+    [HttpPost]
+    public ActionResult<string> SetAppointment([FromBody]AppointmentInfo info)
+    {
+      var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
       Event newEvent = new Event()
       {
-        Summary = info,
+        Summary = info.summary,
         Start = new EventDateTime()
         {
-          DateTime = DateTime.Parse("2019-04-25T09:00:00-07:00"),
+          DateTime = start,
         },
         End = new EventDateTime()
         {
-          DateTime = DateTime.Parse("2019-04-25T17:00:00-07:00"),
+          DateTime = start.AddMinutes(30),
         }
       };
 
