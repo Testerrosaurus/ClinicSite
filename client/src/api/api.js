@@ -25,6 +25,10 @@ function jsonResponsePromise(url, options) {
 
 
 export default {
+  getDb() {
+    return jsonResponsePromise(apiUrl + '/getDb')
+  },
+
   setAppointment(info) {
     let options = {
       method: 'POST',

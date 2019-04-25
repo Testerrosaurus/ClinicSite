@@ -1,7 +1,7 @@
 <template>
   <div class="test">
-    Summary:
-    <input v-model="summary" />
+    Patient Name:
+    <input v-model="patientName" />
 
     <br />
     Procedure:
@@ -49,68 +49,19 @@ let proceduresNames = [
   'procedure3'
 ]
 
-let doctors = [
-  {
-    name: 'doctor1',
-    procedures: [
-      {
-        name: 'procedure1',
-      },
-      {
-        name: 'procedure2',
-      }
-    ],
-    dateTimes: [
-      {
-        date: '2019-04-26',
-        times: ['13:00', '14:00']
-      },
-      {
-        date: '2019-04-27',
-        times: ['10:00', '11:00']
-      }
-    ]
-  },
-  {
-    name: 'doctor2',
-    procedures: [
-      {
-        name: 'procedure1',
-      },
-      {
-        name: 'procedure3',
-      }
-    ],
-    dateTimes: [
-      {
-        date: '2019-04-26',
-        times: ['9:30', '10:30']
-      },
-      {
-        date: '2019-04-27',
-        times: ['9:30', '12:30']
-      },
-      {
-        date: '2019-04-28',
-        times: ['8:00', '11:00']
-      }
-    ]
-  }
-]
-
 export default {
   name: 'AppointmentRegistrator',
 
   data() {
     return {
-      summary: '',
+      patientName: '',
 
       procedureName: '',
       doctorName: '',
       date: '',
       time: '',
 
-      doctors: doctors,
+      doctors: [],
       proceduresNames: proceduresNames
     }
   },
@@ -147,6 +98,11 @@ export default {
     }
   },
 
+  created(){
+    api.getDb()
+    .then(db => this.doctors = db)
+  },
+
   methods: {
     procedureChanged(event) {
       this.procedureName = event.target.value
@@ -169,7 +125,9 @@ export default {
 
     btn1ClickHandler() {
       let info = {
-        summary: this.summary,
+        patient: this.patientName,
+        procedure: this.procedureName,
+        doctor: this.doctorName,
         date: this.date,
         time: this.time
       }

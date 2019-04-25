@@ -17,10 +17,12 @@ namespace server.Controllers
   [ApiController]
   public class AppointmentsController : ControllerBase
   {
-    private Services.Calendar _calendar;
+    private Services.DoctorsDatabase _db;
+    private readonly Services.Calendar _calendar;
 
-    public AppointmentsController(Services.Calendar calendar)
+    public AppointmentsController(Services.DoctorsDatabase db, Services.Calendar calendar)
     {
+      _db = db;
       _calendar = calendar;
     }
 
@@ -57,9 +59,18 @@ namespace server.Controllers
       return result;
     }
 
+    [HttpGet]
+    public ActionResult<string> GetDb()
+    {
+      Response.ContentType = "text/plain";
+      return _db.Data;
+    }
+
     public struct AppointmentInfo
     {
-      public string summary;
+      public string patient;
+      public string procedure;
+      public string doctor;
       public string date;
       public string time;
     }
@@ -67,11 +78,17 @@ namespace server.Controllers
     [HttpPost]
     public ActionResult<string> SetAppointment([FromBody]AppointmentInfo info)
     {
-      var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+      var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd H:mm", CultureInfo.InvariantCulture);
 
       Event newEvent = new Event()
       {
-        Summary = info.summary,
+        Summary = info.procedure + " - " + info.doctor,
+        Description = "Procedure: " + info.procedure + "\nDoctor Name: " + info.doctor + "\nPatient Name: " + info.patient,
+        //Attendees = new EventAttendee[]
+        //{
+        //  new EventAttendee{ DisplayName = info.patient, Email = "" },
+        //  new EventAttendee{ DisplayName = info.doctor, Email = "" },
+        //},
         Start = new EventDateTime()
         {
           DateTime = start,
