@@ -81,7 +81,7 @@ export default {
       let doctor = this.doctors.find(d => d.name === this.doctorName)
 
       if (doctor)
-        return [''].concat(doctor.dateTimes.map(dt => dt.date))
+        return [''].concat([... new Set(doctor.dateTimes.map(dt => dt.date))])
       else
         return ['']
     },
@@ -90,8 +90,7 @@ export default {
       let doctor = this.doctors.find(d => d.name === this.doctorName)
 
       if (doctor) {
-        let date = doctor.dateTimes.find(dt => dt.date === this.date)
-        if (date) return [''].concat(doctor.dateTimes.find(dt => dt.date === this.date).times)
+        return [''].concat(doctor.dateTimes.filter(dt => dt.date === this.date).map(dt => dt.time))
       }
 
       return ['']

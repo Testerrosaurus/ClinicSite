@@ -10,6 +10,7 @@ using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System.Globalization;
+using Newtonsoft.Json;
 
 namespace server.Controllers
 {
@@ -17,17 +18,32 @@ namespace server.Controllers
   [ApiController]
   public class AppointmentsController : ControllerBase
   {
-    private Services.DoctorsDatabase _db;
     private readonly Services.Calendar _calendar;
+    private List<Doctor> _db;
 
-    public AppointmentsController(Services.DoctorsDatabase db, Services.Calendar calendar)
+    public AppointmentsController(Services.Calendar calendar)
     {
-      _db = db;
       _calendar = calendar;
+
+
+      var json = System.IO.File.ReadAllText("DoctorsDatabase.json");
+      var db = JsonConvert.DeserializeObject<List<Doctor>>(json);
+
+      var bookedAppointments = GetAllBookedAppointments();
+
+      foreach (var doctor in db)
+      {
+        doctor.dateTimes.RemoveAll(dt =>
+          bookedAppointments.ContainsKey(doctor.name) &&
+          bookedAppointments[doctor.name].Exists(bdt => 
+            dt.date == bdt.date && dt.time == bdt.time)
+          );
+      }
+
+      _db = db;
     }
 
-    [HttpGet]
-    public ActionResult<string> GetAllEvents()
+    private Dictionary<string, List<DateTimeStruct>> GetAllBookedAppointments()
     {
       // Define parameters of request.
       EventsResource.ListRequest request = _calendar.Service.Events.List(_calendar.CalendarId);
@@ -40,30 +56,56 @@ namespace server.Controllers
 
       // List events.
       Events events = request.Execute();
-      string result = "";
+      var ba = new Dictionary<string, List<DateTimeStruct>>();
       if (events.Items != null && events.Items.Count > 0)
       {
         foreach (var eventItem in events.Items)
         {
-          string start = eventItem.Start.DateTime.ToString();
-          string end = eventItem.End.DateTime.ToString();
-          result += $"{eventItem.Summary} ({start}) - ({end})";
+          if (!eventItem.Summary.Contains(" - ")) continue;
+
+          string doctor = eventItem.Summary.Split(" - ")[1].Trim();
+
+          DateTime start = (DateTime)eventItem.Start.DateTime;
+          string date = start.Year + "-" + start.Month.ToString("00") + "-" + start.Day.ToString("00");
+          string time = start.Hour + ":" + start.Minute.ToString("00");
+
+          var dt = new DateTimeStruct { date = date, time = time };
+          if (ba.ContainsKey(doctor))
+          {
+            ba[doctor].Add(dt);
+          }
+          else
+          {
+            var list = new List<DateTimeStruct>();
+            list.Add(dt);
+
+            ba.Add(doctor, list);
+          }
         }
       }
-      else
-      {
-        result = "No upcoming events found.";
-      }
 
-      Response.ContentType = "application/json";
-      return result;
+      return ba;
+    }
+
+
+    public struct DateTimeStruct
+    {
+      public string date;
+      public string time;
+    }
+
+    public struct Doctor
+    {
+      public string name;
+      public List<dynamic> procedures;
+      public List<DateTimeStruct> dateTimes;
     }
 
     [HttpGet]
-    public ActionResult<string> GetDb()
+    public ActionResult<List<Doctor>> GetDb()
     {
-      Response.ContentType = "text/plain";
-      return _db.Data;
+      Response.ContentType = "application/json";
+      return _db;
     }
 
     public struct AppointmentInfo
