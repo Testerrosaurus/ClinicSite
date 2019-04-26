@@ -10,7 +10,7 @@ using Google.Apis.Calendar.v3.Data;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System.Globalization;
-using Newtonsoft.Json;
+using server.Models;
 
 namespace server.Controllers
 {
@@ -18,88 +18,18 @@ namespace server.Controllers
   [ApiController]
   public class AppointmentsController : ControllerBase
   {
-    private readonly Services.Calendar _calendar;
-    private List<Doctor> _db;
+    static object _locker = new object();
 
-    public AppointmentsController(Services.Calendar calendar)
+    private readonly Services.Calendar _calendar;
+    private readonly List<Doctor> _db;
+
+    public AppointmentsController(Services.Calendar calendar, Services.DoctorsDatabase db)
     {
       _calendar = calendar;
 
-
-      var json = System.IO.File.ReadAllText("DoctorsDatabase.json");
-      var db = JsonConvert.DeserializeObject<List<Doctor>>(json);
-
-      var bookedAppointments = GetAllBookedAppointments();
-
-      foreach (var doctor in db)
-      {
-        doctor.dateTimes.RemoveAll(dt =>
-          bookedAppointments.ContainsKey(doctor.name) &&
-          bookedAppointments[doctor.name].Exists(bdt => 
-            dt.date == bdt.date && dt.time == bdt.time)
-          );
-      }
-
-      _db = db;
+      _db = db.Data;
     }
 
-    private Dictionary<string, List<DateTimeStruct>> GetAllBookedAppointments()
-    {
-      // Define parameters of request.
-      EventsResource.ListRequest request = _calendar.Service.Events.List(_calendar.CalendarId);
-      request.TimeMin = DateTime.Now;
-      request.ShowDeleted = false;
-      request.SingleEvents = true;
-      request.MaxResults = 10;
-      request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
-
-
-      // List events.
-      Events events = request.Execute();
-      var ba = new Dictionary<string, List<DateTimeStruct>>();
-      if (events.Items != null && events.Items.Count > 0)
-      {
-        foreach (var eventItem in events.Items)
-        {
-          if (!eventItem.Summary.Contains(" - ")) continue;
-
-          string doctor = eventItem.Summary.Split(" - ")[1].Trim();
-
-          DateTime start = (DateTime)eventItem.Start.DateTime;
-          string date = start.Year + "-" + start.Month.ToString("00") + "-" + start.Day.ToString("00");
-          string time = start.Hour + ":" + start.Minute.ToString("00");
-
-          var dt = new DateTimeStruct { date = date, time = time };
-          if (ba.ContainsKey(doctor))
-          {
-            ba[doctor].Add(dt);
-          }
-          else
-          {
-            var list = new List<DateTimeStruct>();
-            list.Add(dt);
-
-            ba.Add(doctor, list);
-          }
-        }
-      }
-
-      return ba;
-    }
-
-
-    public struct DateTimeStruct
-    {
-      public string date;
-      public string time;
-    }
-
-    public struct Doctor
-    {
-      public string name;
-      public List<dynamic> procedures;
-      public List<DateTimeStruct> dateTimes;
-    }
 
     [HttpGet]
     public ActionResult<List<Doctor>> GetDb()
@@ -120,6 +50,21 @@ namespace server.Controllers
     [HttpPost]
     public ActionResult<string> SetAppointment([FromBody]AppointmentInfo info)
     {
+      if (info.patient == "" || info.procedure == "" || info.doctor == "" ||
+          info.date == "" || info.time == "")
+        return Ok("Invalid info");
+
+      int deletedCount = -1;
+      lock (_locker)
+      {
+        deletedCount = _db.Find(d => d.name == info.doctor).dateTimes
+        .RemoveAll(dt => dt.date == info.date && dt.time == info.time);
+      }
+
+      if (deletedCount == 0) // didn't delete <=> this datetime is already booked
+        return Ok("Already booked");
+
+
       var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd H:mm", CultureInfo.InvariantCulture);
 
       Event newEvent = new Event()
@@ -144,8 +89,9 @@ namespace server.Controllers
       EventsResource.InsertRequest request = _calendar.Service.Events.Insert(newEvent, _calendar.CalendarId);
       Event createdEvent = request.Execute();
 
+
       Response.ContentType = "application/json";
-      return createdEvent.HtmlLink;
+      return Ok("Created");
     }
   }
 }

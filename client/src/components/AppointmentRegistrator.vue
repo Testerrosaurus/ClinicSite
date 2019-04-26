@@ -131,7 +131,22 @@ export default {
         time: this.time
       }
 
-      api.setAppointment(info).then(answer => console.log(answer))
+      api.setAppointment(info).then(answer => {
+        console.log(answer)
+        if (answer === 'Created') {
+          this.$router.push('/')
+        }
+        else if (answer === 'Invalid info') {
+          alert('Invalid information')
+        }
+        else if (answer === 'Already booked') {
+          api.getDb()
+          .then(db => {
+            this.doctors = db
+            alert('Time was already booked')
+          })
+        }
+      })
     }
   }
 }

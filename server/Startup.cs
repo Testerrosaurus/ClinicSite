@@ -17,6 +17,8 @@ namespace server
     {
       services.AddSingleton<Services.Calendar>();
 
+      services.AddSingleton<Services.DoctorsDatabase>();
+
       services.AddMvc();
 
       services.AddCors();

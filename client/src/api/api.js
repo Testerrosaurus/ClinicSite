@@ -8,7 +8,7 @@ function jsonResponsePromise(url, options) {
       if (response.ok)
         return response.json()
       else
-        throw new Error(response.status + ' ' + response.statusText)
+        throw new Error('Error: ' + response.status + ' ' + response.statusText)
     })
     .catch(error => {
       throw new Error(error.message)
@@ -17,7 +17,7 @@ function jsonResponsePromise(url, options) {
       resolve(json)
     })
     .catch(error => {
-      console.log('Error: ' + error.message)
+      console.log(error.message)
     })
   })  
 }
