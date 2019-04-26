@@ -16,6 +16,21 @@
   }
 }
 
-.test {
+#appointment-registrator {
   background-color: green;
+}
+
+.background-img {
+  background-color: black;
+  color: darkorange;
+  background-image: url("../assets/logo.png");
+  background-size: 100% 100%;
+}
+
+input {
+  width:12rem;
+}
+
+select {
+  width: 7rem;
 }

@@ -30,7 +30,13 @@ namespace server.Services
 
     private List<Doctor> GetFilteredDb()
     {
-      var json = File.ReadAllText("DoctorsDatabase.json");
+      string appDir = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).FullName;
+      if (!Directory.Exists(appDir + "/Data")) // built in bin/{debug/release}/{version}/
+      {
+        appDir = appDir + "/../../..";
+      }
+
+      var json = File.ReadAllText(appDir + "/DoctorsDatabase.json");
       var db = JsonConvert.DeserializeObject<List<Doctor>>(json);
 
       var bookedAppointments = GetAllBookedAppointments();

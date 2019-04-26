@@ -1,3 +1,5 @@
+import 'whatwg-fetch'
+
 const debug = process.env.NODE_ENV !== 'production'
 const apiUrl = debug ? 'http://localhost:5000/api/appointments' : '/api/appointments'
 

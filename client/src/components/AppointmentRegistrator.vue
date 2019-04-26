@@ -1,5 +1,5 @@
 <template>
-  <div class="test">
+  <div id="appointment-registrator">
     Patient Name:
     <input v-model="patientName" />
 
@@ -132,9 +132,8 @@ export default {
       }
 
       api.setAppointment(info).then(answer => {
-        console.log(answer)
         if (answer === 'Created') {
-          this.$router.push('/')
+          this.$router.push('/AppointmentRegistered')
         }
         else if (answer === 'Invalid info') {
           alert('Invalid information')

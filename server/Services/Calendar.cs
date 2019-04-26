@@ -23,7 +23,14 @@ namespace server.Services
       string ApplicationName = "SDSG";
 
       GoogleCredential credential;
-      using (var stream = new FileStream("Data/server_server_cred.json", FileMode.Open, FileAccess.Read))
+
+      string appDir = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).FullName;
+      if (!Directory.Exists(appDir + "/Data")) // built in bin/{debug/release}/{version}/
+      {
+        appDir = appDir + "/../../..";
+      }
+
+      using (var stream = new FileStream(appDir + "/Data/server_server_cred.json", FileMode.Open, FileAccess.Read))
       {
         credential = GoogleCredential.FromStream(stream).CreateScoped(Scopes);
       }
@@ -36,7 +43,7 @@ namespace server.Services
         ApplicationName = ApplicationName,
       });
 
-      CalendarId = File.ReadAllText("Data/calendar_id.txt");
+      CalendarId = File.ReadAllText(appDir + "/Data/calendar_id.json");
     }
   }
 }

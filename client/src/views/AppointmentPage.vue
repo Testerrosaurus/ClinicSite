@@ -1,6 +1,6 @@
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
+  <div>
+    <h2>Appointment registration:</h2>
     <AppointmentRegistrator />
   </div>
 </template>
@@ -10,7 +10,7 @@
 import AppointmentRegistrator from '@/components/AppointmentRegistrator.vue'
 
 export default {
-  name: 'about',
+  name: 'AppointmentPage',
   components: {
     AppointmentRegistrator
   }
