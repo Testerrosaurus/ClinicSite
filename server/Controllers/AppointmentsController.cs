@@ -11,6 +11,7 @@ using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System.Globalization;
 using server.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace server.Controllers
 {
@@ -23,11 +24,15 @@ namespace server.Controllers
     private readonly Services.Calendar _calendar;
     private readonly List<Doctor> _db;
 
-    public AppointmentsController(Services.Calendar calendar, Services.DoctorsDatabase db)
+    private readonly DoctorsContext _context;
+
+    public AppointmentsController(Services.Calendar calendar, DoctorsContext context, Services.BookedFiltrator filtrator)
     {
       _calendar = calendar;
 
-      _db = db.Data;
+      _context = context;
+
+      _db = filtrator.Filtered;
     }
 
 

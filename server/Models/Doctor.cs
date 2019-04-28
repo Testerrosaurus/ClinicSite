@@ -2,19 +2,36 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace server.Models
 {
-  public struct DateTimeStruct
+  public class Procedure
   {
-    public string date;
-    public string time;
+    [Key]
+    public long Id { get; set; }
+
+    public string name { get; set; }
   }
 
-  public struct Doctor
+  public class DateTimePair
   {
-    public string name;
-    public List<dynamic> procedures;
-    public List<DateTimeStruct> dateTimes;
+    [Key]
+    public long Id { get; set; }
+
+    public string date { get; set; }
+    public string time { get; set; }
+  }
+
+  public class Doctor
+  {
+    [Key]
+    public long Id { get; set; }
+
+    public string name { get; set; }
+
+    public List<Procedure> procedures { get; set; }
+    public List<DateTimePair> dateTimes { get; set; }
   }
 }
