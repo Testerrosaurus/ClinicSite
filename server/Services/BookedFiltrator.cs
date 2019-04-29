@@ -32,7 +32,7 @@ namespace server.Services
       {
         var context = scope.ServiceProvider.GetService<DoctorsContext>();
 
-        if (!context.Doctors.Any())
+        //if (!context.Doctors.Any())
         {
           string appDir = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).FullName;
           if (!Directory.Exists(appDir + "/Data")) // built in bin/{debug/release}/{version}/
@@ -43,7 +43,8 @@ namespace server.Services
           var json = File.ReadAllText(appDir + "/DoctorsDatabase.json");
           var doctors = JsonConvert.DeserializeObject<List<Doctor>>(json);
 
-
+          //context.Database.ExecuteSqlCommand("TRUNCATE TABLE Doctors");
+          context.Doctors.RemoveRange(context.Doctors.Include(d => d.dateTimes).Include(d => d.procedures).ToList());
           context.Doctors.AddRange(doctors);
           context.SaveChanges();
         }
@@ -54,7 +55,7 @@ namespace server.Services
     }
 
 
-    public List<Doctor> GetFilteredDb(List<Doctor> db)
+    private List<Doctor> GetFilteredDb(List<Doctor> db)
     {
       foreach (var doctor in db)
       {

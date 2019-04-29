@@ -98,7 +98,7 @@ export default {
   },
 
   created(){
-    api.getDb()
+    api.getFilteredDb()
     .then(db => this.doctors = db)
   },
 

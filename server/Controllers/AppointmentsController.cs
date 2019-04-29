@@ -22,17 +22,17 @@ namespace server.Controllers
     static object _locker = new object();
 
     private readonly Services.Calendar _calendar;
-    private readonly List<Doctor> _db;
+    private readonly List<Doctor> _filtered_db;
 
-    private readonly DoctorsContext _context;
+    private readonly DoctorsContext _dbContext;
 
     public AppointmentsController(Services.Calendar calendar, DoctorsContext context, Services.BookedFiltrator filtrator)
     {
       _calendar = calendar;
 
-      _context = context;
+      _dbContext = context;
 
-      _db = filtrator.Filtered;
+      _filtered_db = filtrator.Filtered;
     }
 
 
@@ -40,7 +40,29 @@ namespace server.Controllers
     public ActionResult<List<Doctor>> GetDb()
     {
       Response.ContentType = "application/json";
-      return _db;
+      return _dbContext.Doctors.Include(d => d.dateTimes).Include(d => d.procedures).ToList();
+    }
+
+    [HttpPost]
+    public ActionResult<string> RemoveDt(long doctorId, long dtId)
+    {
+      var doctor = _dbContext.Doctors.Include(d => d.dateTimes).First(d => d.Id == doctorId);
+      var dateTime = doctor.dateTimes.Find(dt => dt.Id == dtId);
+
+      doctor.dateTimes.Remove(dateTime);
+      _dbContext.SaveChanges();
+
+
+      Response.ContentType = "application/json";
+      return Ok("Removed");
+    }
+
+
+    [HttpGet]
+    public ActionResult<List<Doctor>> GetFilteredDb()
+    {
+      Response.ContentType = "application/json";
+      return _filtered_db;
     }
 
     public struct AppointmentInfo
@@ -62,7 +84,7 @@ namespace server.Controllers
       int deletedCount = -1;
       lock (_locker)
       {
-        deletedCount = _db.Find(d => d.name == info.doctor).dateTimes
+        deletedCount = _filtered_db.Find(d => d.name == info.doctor).dateTimes
         .RemoveAll(dt => dt.date == info.date && dt.time == info.time);
       }
 

@@ -14,5 +14,14 @@ namespace server.Models
     {
       Database.EnsureCreated();
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+      modelBuilder.Entity<Doctor>()
+          .HasMany(d => d.dateTimes)
+          .WithOne()
+          .HasForeignKey("DoctorId")
+          .OnDelete(DeleteBehavior.Cascade);
+    }
   }
 }

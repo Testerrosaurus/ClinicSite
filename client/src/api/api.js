@@ -13,7 +13,7 @@ function jsonResponsePromise(url, options) {
         throw new Error('Error: ' + response.status + ' ' + response.statusText)
     })
     .catch(error => {
-      throw new Error(error.message)
+      throw new Error('Error: ' + error.message)
     })
     .then(json => {
       resolve(json)
@@ -27,8 +27,21 @@ function jsonResponsePromise(url, options) {
 
 
 export default {
+  removeDt(info) {
+    let options = {
+      method: 'POST'
+    }
+
+    return jsonResponsePromise(apiUrl + '/removeDt?doctorId=' + info.doctorId + '&dtId=' + info.dtId, options)
+  },
+
   getDb() {
     return jsonResponsePromise(apiUrl + '/getDb')
+  },
+
+  
+  getFilteredDb() {
+    return jsonResponsePromise(apiUrl + '/getFilteredDb')
   },
 
   setAppointment(info) {
