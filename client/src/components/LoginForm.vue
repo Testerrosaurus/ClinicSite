@@ -1,12 +1,13 @@
 <template>
   <div>
     <button @click="loginHandler">Login</button>
-    <button @click="test">test</button>
   </div>
 </template>
 
 <script>
 import api from '../api/api.js'
+
+import {mapMutations} from 'vuex'
 
 export default {
   name: 'LoginForm',
@@ -19,6 +20,10 @@ export default {
 
 
   methods: {
+    ...mapMutations([
+      'setLoggedIn'
+    ]),
+
     loginHandler() {
       let info = {
         userName: 'userName1',
@@ -28,15 +33,9 @@ export default {
 
       api.login(info)
       .then(response => {
-        console.log(response)
+        this.setLoggedIn(true)
+        this.$router.push({path: '/'})
       })
-    },
-
-    test() {
-      api.isLoggedIn()
-    .then(response => {
-      console.log(response)
-    })
     }
   }
 }

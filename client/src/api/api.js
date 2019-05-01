@@ -52,6 +52,15 @@ export default {
     return jsonResponsePromise(apiUrl + '/account/login?userName=' + info.userName + '&password=' + info.password + '&remember=' + info.remember, options)
   },
 
+  logout() {
+    let options = {
+      method: 'POST',
+      credentials: 'include'
+    }
+
+    return jsonResponsePromise(apiUrl + '/account/logout', options)
+  },
+
   removeDt(info) {
     let options = {
       method: 'POST'
