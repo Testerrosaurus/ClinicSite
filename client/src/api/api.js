@@ -3,7 +3,32 @@ import 'whatwg-fetch'
 const debug = process.env.NODE_ENV !== 'production'
 const apiUrl = debug ? 'http://localhost:5000/api' : '/api'
 
+
+function getCookie(cname) {
+  let name = cname + "="
+  let decodedCookie = decodeURIComponent(document.cookie)
+  let cookiesArray = decodedCookie.split(';')
+  for(let i = 0; i <cookiesArray.length; i++) {
+      let c = cookiesArray[i]
+      while (c.charAt(0) == ' ') {
+          c = c.substring(1)
+      }
+      if (c.indexOf(name) == 0) {
+          return c.substring(name.length, c.length)
+      }
+  }
+  return ""
+}
+
 function jsonResponsePromise(url, options) {
+  if (options && options.method === 'POST') {
+    let csrfToken = getCookie("XSRF-TOKEN")
+
+    options.headers = {
+      'X-CSRF-TOKEN': csrfToken
+    }
+  }
+
   return new Promise(resolve => {
     fetch(url, options)
     .then(response => {
@@ -25,7 +50,6 @@ function jsonResponsePromise(url, options) {
 }
 
 
-
 export default {
   isLoggedIn() {
     let options = {
@@ -37,7 +61,8 @@ export default {
 
   register(info) {
     let options = {
-      method: 'POST'
+      method: 'POST',
+      credentials: 'include'
     }
 
     return jsonResponsePromise(apiUrl + '/account/register?email=' + info.email + '&userName=' + info.userName + '&password=' + info.password, options)
@@ -63,14 +88,19 @@ export default {
 
   removeDt(info) {
     let options = {
-      method: 'POST'
+      method: 'POST',
+      credentials: 'include'
     }
 
     return jsonResponsePromise(apiUrl + '/appointments/removeDt?doctorId=' + info.doctorId + '&dtId=' + info.dtId, options)
   },
 
   getDb() {
-    return jsonResponsePromise(apiUrl + '/appointments/getDb')
+    let options = {
+      credentials: 'include'
+    }
+
+    return jsonResponsePromise(apiUrl + '/appointments/getDb', options)
   },
 
   

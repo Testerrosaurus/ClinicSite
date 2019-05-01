@@ -12,6 +12,7 @@ using Google.Apis.Util.Store;
 using System.Globalization;
 using server.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace server.Controllers
 {
@@ -35,7 +36,7 @@ namespace server.Controllers
       _filtered_db = filtrator.Filtered;
     }
 
-
+    [Authorize]
     [HttpGet]
     public ActionResult<List<Doctor>> GetDb()
     {
@@ -43,7 +44,9 @@ namespace server.Controllers
       return _dbContext.Doctors.Include(d => d.dateTimes).Include(d => d.procedures).ToList();
     }
 
+    [Authorize]
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public ActionResult<string> RemoveDt(long doctorId, long dtId)
     {
       var doctor = _dbContext.Doctors.Include(d => d.dateTimes).First(d => d.Id == doctorId);
@@ -75,6 +78,7 @@ namespace server.Controllers
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public ActionResult<string> SetAppointment([FromBody]AppointmentInfo info)
     {
       Response.ContentType = "application/json";

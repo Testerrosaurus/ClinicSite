@@ -42,24 +42,45 @@ namespace server
       // should be added after the  AddIdentity
       services.ConfigureApplicationCookie(identityOptionsCookies =>
       {
+        identityOptionsCookies.Cookie.Name = "AuthCookie";
         identityOptionsCookies.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         identityOptionsCookies.Cookie.SameSite = SameSiteMode.None;
+        identityOptionsCookies.Events.OnRedirectToLogin = context =>
+        {
+          context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+          return Task.CompletedTask;
+        };
       });
 
 
-      services.AddMvc();
+      services.AddAntiforgery(options =>
+      {
+        options.Cookie.Name = "AntiforgeryCookie";
+        options.HeaderName = "X-CSRF-TOKEN";
+      });
+
+
+      services.AddTransient<Filters.AntiforgeryCookieResultFilterAttribute>();
+
+      services.AddMvc(options =>
+      {
+        options.Filters.AddService<Filters.AntiforgeryCookieResultFilterAttribute>();
+      });
+
 
       services.AddCors();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env, IAntiforgery antiforgery)
     {
       if (env.IsDevelopment())
       {
         app.UseDeveloperExceptionPage();
         app.UseCors(builder => builder.WithOrigins("http://localhost:8080").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
       }
+
+      app.UseStaticFiles();
 
       app.Use(async (context, next) =>
       {
@@ -77,10 +98,23 @@ namespace server
       });
 
 
-      app.UseStaticFiles();
-
-
       app.UseAuthentication();
+
+      //app.Use(async (context, next) =>
+      //{
+      //  string path = context.Request.Path.Value;
+
+      //  if (string.Equals(path, "/api/account/isLoggedIn", StringComparison.OrdinalIgnoreCase))
+      //  {
+      //    // The request token can be sent as a JavaScript-readable cookie
+      //    var tokens = antiforgery.GetAndStoreTokens(context);
+      //    context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken,
+      //        new CookieOptions() { HttpOnly = false });
+      //  }
+
+      //  await next();
+      //});
+
 
       app.UseMvc();
     }

@@ -37,7 +37,10 @@ export default new Router({
     {
       path: '/RegisterAccount',
       name: 'RegisterAccount',
-      component: () => import('./components/RegisterAccount.vue')
+      component: () => import('./components/RegisterAccount.vue'),
+      meta: {
+        requiresVisitor: true
+      }
     },
     {
       path: '/LoginForm',

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,6 +29,7 @@ namespace server.Controllers
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<ActionResult<string>> Register(string email, string userName, string password)
     {
       Response.ContentType = "application/json";
@@ -39,6 +42,8 @@ namespace server.Controllers
         if (result.Succeeded)
         {
           await _signInManager.SignInAsync(user, false);
+
+          HttpContext.User = await _signInManager.CreateUserPrincipalAsync(user);
         }
         else
         {
@@ -56,16 +61,19 @@ namespace server.Controllers
 
 
     [HttpPost]
-    //[ValidateAntiForgeryToken]
+    [ValidateAntiForgeryToken]
     public async Task<ActionResult<string>> Login(string userName, string password, bool remember)
     {
       Response.ContentType = "application/json";
- 
+
       if (ModelState.IsValid)
       {
         var result = await _signInManager.PasswordSignInAsync(userName, password, remember, false);
         if (result.Succeeded)
         {
+          var user = await _userManager.FindByNameAsync(userName);
+          HttpContext.User = await _signInManager.CreateUserPrincipalAsync(user);
+
           return Ok("Success");
         }
         else
@@ -78,12 +86,14 @@ namespace server.Controllers
     }
 
     [HttpPost]
-    //[ValidateAntiForgeryToken]
-    public async Task<ActionResult<string>> LogOut()
+    [ValidateAntiForgeryToken]
+    public async Task<ActionResult<string>> Logout()
     {
       Response.ContentType = "application/json";
 
       await _signInManager.SignOutAsync();
+
+      HttpContext.User = new ClaimsPrincipal();
 
       return Ok("Success");
     }

@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h2>Sign in page</h2>
     <button @click="loginHandler">Login</button>
   </div>
 </template>

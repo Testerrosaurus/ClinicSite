@@ -1,11 +1,14 @@
 <template>
   <div>
+    <h2>Registration page</h2>
     <button @click="registerHandler">Register</button>
   </div>
 </template>
 
 <script>
 import api from '../api/api.js'
+
+import {mapMutations} from 'vuex'
 
 export default {
   name: 'RegisterAccount',
@@ -18,10 +21,14 @@ export default {
 
 
   methods: {
+    ...mapMutations([
+      'setLoggedIn'
+    ]),
+
     registerHandler() {
       let info = {
-        email: 'userName1email@mail.ru',
-        userName: 'userName1',
+        email: 'userName6email@mail.ru',
+        userName: 'userName6',
         password: 'Password123!'
       }
 
@@ -29,6 +36,9 @@ export default {
       .then(response => {
         if (response === "Registered") {
           console.log('Registration succeeded')
+
+          this.setLoggedIn(true)
+          this.$router.push({path: '/'})
         } else {
           console.log(response)
         }
