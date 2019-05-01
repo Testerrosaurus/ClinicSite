@@ -9,6 +9,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using server.Models;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace server
 {
@@ -32,6 +36,17 @@ namespace server
       services.AddSingleton<Services.BookedFiltrator>();
 
 
+      services.AddDbContext<IdentityContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+      services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<IdentityContext>();
+      // should be added after the  AddIdentity
+      services.ConfigureApplicationCookie(identityOptionsCookies =>
+      {
+        identityOptionsCookies.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        identityOptionsCookies.Cookie.SameSite = SameSiteMode.None;
+      });
+
+
       services.AddMvc();
 
       services.AddCors();
@@ -43,7 +58,7 @@ namespace server
       if (env.IsDevelopment())
       {
         app.UseDeveloperExceptionPage();
-        app.UseCors(builder => builder.WithOrigins("http://localhost:8080").AllowAnyHeader().AllowAnyMethod());
+        app.UseCors(builder => builder.WithOrigins("http://localhost:8080").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
       }
 
       app.Use(async (context, next) =>
@@ -63,6 +78,9 @@ namespace server
 
 
       app.UseStaticFiles();
+
+
+      app.UseAuthentication();
 
       app.UseMvc();
     }

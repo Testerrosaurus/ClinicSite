@@ -77,6 +77,9 @@ namespace server.Controllers
     [HttpPost]
     public ActionResult<string> SetAppointment([FromBody]AppointmentInfo info)
     {
+      Response.ContentType = "application/json";
+
+
       if (info.patient == "" || info.procedure == "" || info.doctor == "" ||
           info.date == "" || info.time == "")
         return Ok("Invalid info");
@@ -117,7 +120,6 @@ namespace server.Controllers
       Event createdEvent = request.Execute();
 
 
-      Response.ContentType = "application/json";
       return Ok("Created");
     }
   }

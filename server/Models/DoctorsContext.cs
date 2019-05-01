@@ -12,7 +12,6 @@ namespace server.Models
 
     public DoctorsContext(DbContextOptions<DoctorsContext> options) : base(options)
     {
-      Database.EnsureCreated();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

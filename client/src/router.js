@@ -24,18 +24,22 @@ export default new Router({
     {
       path: '/AppointmentPage',
       name: 'AppointmentPage',
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/AppointmentPage.vue')
+      component: () => import('./views/AppointmentPage.vue')
     },
     {
       path: '/AppointmentRegistered',
       name: 'AppointmentRegistered',
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/AppointmentRegistered.vue')
+      component: () => import('./views/AppointmentRegistered.vue')
+    },
+    {
+      path: '/RegisterAccount',
+      name: 'RegisterAccount',
+      component: () => import('./components/RegisterAccount.vue')
+    },
+    {
+      path: '/LoginForm',
+      name: 'LoginForm',
+      component: () => import('./components/LoginForm.vue')
     }
   ]
 })
