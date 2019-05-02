@@ -13,107 +13,107 @@ using server.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 
-namespace server.Services
-{
-  public class BookedFiltrator
-  {
-    private Calendar _calendar;
-    private Dictionary<string, List<DateTimePair>> _booked;
+//namespace server.Services
+//{
+//  public class BookedFiltrator
+//  {
+//    private Calendar _calendar;
+//    private Dictionary<string, List<DateTimePair>> _booked;
 
-    public List<Doctor> Filtered;
+//    public List<Doctor> Filtered;
 
-    public BookedFiltrator(Calendar calendar, IServiceProvider service)
-    {
-      _calendar = calendar;
+//    public BookedFiltrator(Calendar calendar, IServiceProvider service)
+//    {
+//      _calendar = calendar;
 
-      _booked = GetAllBookedAppointments();
+//      _booked = GetAllBookedAppointments();
 
-      using (var scope = service.CreateScope())
-      {
-        var context = scope.ServiceProvider.GetService<DoctorsContext>();
+//      using (var scope = service.CreateScope())
+//      {
+//        var context = scope.ServiceProvider.GetService<DoctorsContext>();
 
-        //if (!context.Doctors.Any())
-        {
-          string appDir = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).FullName;
-          if (!Directory.Exists(appDir + "/Data")) // built in bin/{debug/release}/{version}/
-          {
-            appDir = appDir + "/../../..";
-          }
+//        //if (!context.Doctors.Any())
+//        {
+//          string appDir = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).FullName;
+//          if (!Directory.Exists(appDir + "/Data")) // built in bin/{debug/release}/{version}/
+//          {
+//            appDir = appDir + "/../../..";
+//          }
 
-          var json = File.ReadAllText(appDir + "/DoctorsDatabase.json");
-          var doctors = JsonConvert.DeserializeObject<List<Doctor>>(json);
-
-
-          context.Procedures.RemoveRange(context.Procedures.ToList());
-          context.DateTimePairs.RemoveRange(context.DateTimePairs.ToList());
-          context.Doctors.RemoveRange(context.Doctors.ToList());
-
-          context.Doctors.AddRange(doctors);
-          context.SaveChanges();
-        }
-
-        var db = context.Doctors.Include(d => d.DateTimes).Include(d => d.Procedures).ToList();
-        Filtered = GetFilteredDb(db);
-      }
-    }
+//          var json = File.ReadAllText(appDir + "/DoctorsDatabase.json");
+//          var doctors = JsonConvert.DeserializeObject<List<Doctor>>(json);
 
 
-    private List<Doctor> GetFilteredDb(List<Doctor> db)
-    {
-      foreach (var doctor in db)
-      {
-        doctor.DateTimes.RemoveAll(dt =>
-          _booked.ContainsKey(doctor.Name) &&
-          _booked[doctor.Name].Exists(bdt =>
-            dt.Date == bdt.Date && dt.Time == bdt.Time)
-          );
-      }
+//          context.Procedures.RemoveRange(context.Procedures.ToList());
+//          context.DateTimePairs.RemoveRange(context.DateTimePairs.ToList());
+//          context.Doctors.RemoveRange(context.Doctors.ToList());
 
-      return db;
-    }
+//          context.Doctors.AddRange(doctors);
+//          context.SaveChanges();
+//        }
 
-    private Dictionary<string, List<DateTimePair>> GetAllBookedAppointments()
-    {
-      // Define parameters of request.
-      EventsResource.ListRequest request = _calendar.Service.Events.List(_calendar.CalendarId);
-      request.TimeMin = DateTime.Now;
-      request.ShowDeleted = false;
-      request.SingleEvents = true;
-      request.MaxResults = 10;
-      request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
+//        var db = context.Doctors.Include(d => d.DateTimes).Include(d => d.Procedures).ToList();
+//        Filtered = GetFilteredDb(db);
+//      }
+//    }
 
 
-      // List events.
-      Events events = request.Execute();
-      var ba = new Dictionary<string, List<DateTimePair>>();
-      if (events.Items != null && events.Items.Count > 0)
-      {
-        foreach (var eventItem in events.Items)
-        {
-          if (!eventItem.Summary.Contains(" - ")) continue;
+//    private List<Doctor> GetFilteredDb(List<Doctor> db)
+//    {
+//      foreach (var doctor in db)
+//      {
+//        doctor.DateTimes.RemoveAll(dt =>
+//          _booked.ContainsKey(doctor.Name) &&
+//          _booked[doctor.Name].Exists(bdt =>
+//            dt.Date == bdt.Date && dt.Time == bdt.Time)
+//          );
+//      }
 
-          string doctor = eventItem.Summary.Split(" - ")[1].Trim();
+//      return db;
+//    }
 
-          DateTime start = (DateTime)eventItem.Start.DateTime;
-          string date = start.Year + "-" + start.Month.ToString("00") + "-" + start.Day.ToString("00");
-          string time = start.Hour + ":" + start.Minute.ToString("00");
+//    private Dictionary<string, List<DateTimePair>> GetAllBookedAppointments()
+//    {
+//      // Define parameters of request.
+//      EventsResource.ListRequest request = _calendar.Service.Events.List(_calendar.CalendarId);
+//      request.TimeMin = DateTime.Now;
+//      request.ShowDeleted = false;
+//      request.SingleEvents = true;
+//      request.MaxResults = 10;
+//      request.OrderBy = EventsResource.ListRequest.OrderByEnum.StartTime;
 
-          var dt = new DateTimePair { Date = date, Time = time };
-          if (ba.ContainsKey(doctor))
-          {
-            ba[doctor].Add(dt);
-          }
-          else
-          {
-            var list = new List<DateTimePair>();
-            list.Add(dt);
 
-            ba.Add(doctor, list);
-          }
-        }
-      }
+//      // List events.
+//      Events events = request.Execute();
+//      var ba = new Dictionary<string, List<DateTimePair>>();
+//      if (events.Items != null && events.Items.Count > 0)
+//      {
+//        foreach (var eventItem in events.Items)
+//        {
+//          if (!eventItem.Summary.Contains(" - ")) continue;
 
-      return ba;
-    }
-  }
-}
+//          string doctor = eventItem.Summary.Split(" - ")[1].Trim();
+
+//          DateTime start = (DateTime)eventItem.Start.DateTime;
+//          string date = start.Year + "-" + start.Month.ToString("00") + "-" + start.Day.ToString("00");
+//          string time = start.Hour + ":" + start.Minute.ToString("00");
+
+//          var dt = new DateTimePair { Date = date, Time = time };
+//          if (ba.ContainsKey(doctor))
+//          {
+//            ba[doctor].Add(dt);
+//          }
+//          else
+//          {
+//            var list = new List<DateTimePair>();
+//            list.Add(dt);
+
+//            ba.Add(doctor, list);
+//          }
+//        }
+//      }
+
+//      return ba;
+//    }
+//  }
+//}

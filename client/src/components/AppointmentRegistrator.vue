@@ -6,32 +6,32 @@
     <br />
     Procedure:
     <select :value="procedureName" @change="procedureChanged($event)">
-      <option v-for="procedureName in proceduresList" :key="procedureName" :value="procedureName">
-        {{procedureName}}
+      <option v-for="pn in proceduresNamesList" :key="pn" :value="pn">
+        {{pn}}
       </option>
     </select>
 
     <br />
     Doctor:
     <select :value="doctorName" @change="doctorChanged($event)">
-      <option v-for="doctor in doctorsList" :key="doctor.name" :value="doctor.name">
-        {{doctor.name}}
+      <option v-for="d in doctorsNamesList" :key="d" :value="d">
+        {{d}}
       </option>
     </select>
 
     <br />
     Date:
     <select :value="date" @change="dateChanged($event)">
-      <option v-for="date in datesList" :key="date" :value="date">
+      <option v-for="(date, index) in datesList" :key="index" :value="date">
         {{date}}
       </option>
     </select>
 
     <br />
     Time:
-    <select :value="currentDt.time" @change="timeChanged($event)">
-      <option v-for="dt in timesList" :key="dt.id" :value="dt.time">
-        {{dt.time}}
+    <select :value="currentAppointment.time" @change="timeChanged($event)">
+      <option v-for="a in appointmentsList" :key="a.time" :value="a.time">
+        {{a.time}}
       </option>
     </select>
 
@@ -43,12 +43,6 @@
 <script>
 import api from '../api/api.js'
 
-let proceduresNames = [
-  'procedure1',
-  'procedure2',
-  'procedure3'
-]
-
 export default {
   name: 'AppointmentRegistrator',
 
@@ -59,47 +53,42 @@ export default {
       procedureName: '',
       doctorName: '',
       date: '',
-      currentDt: {time: ''},
+      currentAppointment: {time: ''},
 
-      doctors: [],
-      proceduresNames: proceduresNames
+      appointments: [],
+      procedures: []
     }
   },
 
   computed: {
-    proceduresList() { 
-      return [''].concat(this.proceduresNames)
+    proceduresNamesList() { 
+      return [''].concat(this.procedures.map(p => p.name))
     },
 
-    doctorsList() {
-      let doctorsDoingChosenProcedure = this.doctors.filter(d => d.procedures.find(p => p.name === this.procedureName))
+    doctorsNamesList() {
+      let procedure = this.procedures.find(p => p.name == this.procedureName)
 
-      return [''].concat(doctorsDoingChosenProcedure)
-    },
-
-    datesList() {
-      let doctor = this.doctors.find(d => d.name === this.doctorName)
-
-      if (doctor)
-        return [''].concat([... new Set(doctor.dateTimes.map(dt => dt.date))])
+      if (procedure)
+        return [''].concat(procedure.doctors)
       else
         return ['']
     },
 
-    timesList() {
-      let doctor = this.doctors.find(d => d.name === this.doctorName)
+    datesList() {
+      return [''].concat(this.appointments.filter(a => a.doctor.name === this.doctorName).map(a => a.date))
+    },
 
-      if (doctor) {
-        return [{time: ''}].concat(doctor.dateTimes.filter(dt => dt.date === this.date))
-      }
-
-      return ['']
+    appointmentsList() {
+      return [{time: ''}].concat(this.appointments.filter(a => a.date === this.date && a.doctor.name === this.doctorName))
     }
   },
 
   created(){
     api.getFilteredDb()
-    .then(db => this.doctors = db)
+    .then(db => {
+      this.appointments = db.appointments
+      this.procedures = db.procedures
+    })
   },
 
   methods: {
@@ -115,19 +104,19 @@ export default {
 
     dateChanged(event) {
       this.date = event.target.value
-      this.currentDt = {time: ''}
+      this.currentAppointment = {time: ''}
     },
 
     timeChanged(event) {
-      this.currentDt = this.timesList.find(dt => dt.time === event.target.value)
+      this.currentAppointment = this.appointmentsList.find(a => a.time === event.target.value)
     },
 
     btn1ClickHandler() {
       let info = {
         patient: this.patientName,
         procedure: this.procedureName,
-        id: this.currentDt.id,
-        rowVersion: this.currentDt.rowVersion
+        id: this.currentAppointment.id,
+        rowVersion: this.currentAppointment.rowVersion
       }
 
       api.setAppointment(info).then(answer => {

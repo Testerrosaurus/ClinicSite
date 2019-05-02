@@ -21,13 +21,11 @@ namespace server.Controllers
   [ApiController]
   public class AppointmentsController : ControllerBase
   {
-    static object _locker = new object();
-
     private readonly Services.Calendar _calendar;
 
-    private readonly DoctorsContext _dbContext;
+    private readonly AppointmentsContext _dbContext;
 
-    public AppointmentsController(Services.Calendar calendar, DoctorsContext context, Services.BookedFiltrator filtrator)
+    public AppointmentsController(Services.Calendar calendar, AppointmentsContext context)
     {
       _calendar = calendar;
 
@@ -36,32 +34,32 @@ namespace server.Controllers
 
     [Authorize]
     [HttpGet]
-    public ActionResult<List<Doctor>> GetDb()
+    public ActionResult<List<Appointment>> GetDb()
     {
-      Response.ContentType = "application/json";
-      return _dbContext.Doctors.Include(d => d.DateTimes).Include(d => d.Procedures).ToList();
+      var appointments = _dbContext.Appointments.Include(a => a.Doctor).Include(a => a.Info).ToList();
+      var doctors = _dbContext.Doctors.Select(p => new { p.Name, Doctors = p.DoctorProcedures.Select(dp => dp.Procedure.Name) }).ToList();
+
+      return Ok(new { Appointments = appointments, Doctors = doctors });
     }
 
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult<string> ConfirmDt(long id, byte[] rowVersion)
+    public ActionResult<string> ConfirmAppointment(long id, byte[] rowVersion)
     {
       Response.ContentType = "application/json";
 
       try
       {
-        var dateTime = new DateTimePair { Id = id, RowVersion = rowVersion };
-        _dbContext.DateTimePairs.Attach(dateTime);
-        dateTime.Status = "Confirmed";
+        var appointment = new Appointment { Id = id, RowVersion = rowVersion };
+        _dbContext.Appointments.Attach(appointment);
+        appointment.Status = "Confirmed";
         _dbContext.SaveChanges();
       }
       catch (DbUpdateConcurrencyException)
       {
         return Ok("Fail");
       }
-
-      var dt = _dbContext.DateTimePairs.Find(id);
 
 
       //var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd H:mm", CultureInfo.InvariantCulture);
@@ -94,14 +92,14 @@ namespace server.Controllers
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult<string> RemoveDt(long id, byte[] rowVersion)
+    public ActionResult<string> RemoveAppointment(long id, byte[] rowVersion)
     {
       Response.ContentType = "application/json";
 
       try
       {
-        var dateTime = new DateTimePair { Id = id, RowVersion = rowVersion };
-        _dbContext.DateTimePairs.Remove(dateTime);
+        var appointment = new Appointment { Id = id, RowVersion = rowVersion };
+        _dbContext.Appointments.Remove(appointment);
         _dbContext.SaveChanges();
       }
       catch (DbUpdateConcurrencyException)
@@ -113,17 +111,12 @@ namespace server.Controllers
     }
 
     [HttpGet]
-    public ActionResult<List<Doctor>> GetFilteredDb()
+    public ActionResult<dynamic> GetFilteredDb()
     {
-      Response.ContentType = "application/json";
+      var appointments = _dbContext.Appointments.Include(d => d.Doctor).Where(a => a.Status == "Free").ToList();
+      var procedures = _dbContext.Procedures.Select(p => new { p.Name, Doctors = p.DoctorProcedures.Select(dp => dp.Doctor.Name) }).ToList();
 
-      var doctors = _dbContext.Doctors.Include(d => d.DateTimes).Include(d => d.Procedures).ToList();
-      foreach (var doctor in doctors)
-      {
-        doctor.DateTimes.RemoveAll(dt => dt.Status != "Free");
-      }
-
-      return doctors;
+      return Ok(new { Appointments = appointments, Procedures = procedures });
     }
 
     public struct AppointmentInfo
@@ -145,9 +138,9 @@ namespace server.Controllers
 
       try
       {
-        var dateTime = new DateTimePair { Id = info.id, RowVersion = info.rowVersion };
-        _dbContext.DateTimePairs.Attach(dateTime);
-        dateTime.Status = "Unconfirmed";
+        var appointment = new Appointment { Id = info.id, RowVersion = info.rowVersion };
+        _dbContext.Appointments.Attach(appointment);
+        appointment.Status = "Unconfirmed";
         _dbContext.SaveChanges();
       }
       catch (DbUpdateConcurrencyException)

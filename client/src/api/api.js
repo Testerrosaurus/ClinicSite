@@ -87,22 +87,22 @@ export default {
     return jsonResponsePromise(apiUrl + '/account/logout', options)
   },
 
-  confirmDt(info) {
+  confirmAppointment(info) {
     let options = {
       method: 'POST',
       credentials: 'include'
     }
 
-    return jsonResponsePromise(apiUrl + '/appointments/confirmDt?id=' + info.id + '&rowVersion=' + info.rowVersion, options)
+    return jsonResponsePromise(apiUrl + '/appointments/confirmAppointment?id=' + info.id + '&rowVersion=' + info.rowVersion, options)
   },
 
-  removeDt(info) {
+  removeAppointment(info) {
     let options = {
       method: 'POST',
       credentials: 'include'
     }
 
-    return jsonResponsePromise(apiUrl + '/appointments/removeDt?id=' + info.id + '&rowVersion=' + info.rowVersion, options)
+    return jsonResponsePromise(apiUrl + '/appointments/removeAppointment?id=' + info.id + '&rowVersion=' + info.rowVersion, options)
   },
 
   getDb() {

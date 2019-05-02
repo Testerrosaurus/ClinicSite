@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace server.Migrations.Identity
+namespace server.Migrations
 {
     public partial class InitialCreate : Migration
     {

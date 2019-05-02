@@ -34,8 +34,12 @@ export default {
 
       api.login(info)
       .then(response => {
-        this.setLoggedIn(true)
-        this.$router.push({path: '/'})
+        if (response === 'Success') {
+          this.setLoggedIn(true)
+          this.$router.push({path: '/'})
+        } else if (response === 'Fail') {
+          alert('Invalid login information')
+        }     
       })
     }
   }

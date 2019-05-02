@@ -1,7 +1,7 @@
 <template>
   <div>
     Doctor:
-    <select :value="currentDoctor.name" @change="doctorChanged($event)">
+    <select :value="currentDoctorName" @change="doctorChanged($event)">
       <option v-for="doctor in [{name:''}].concat(doctors)" :key="doctor.name" :value="doctor.name">
         {{doctor.name}}
       </option>
@@ -14,12 +14,12 @@
         <td>Status</td>
         <td></td>
       </tr>
-      <tr v-for="(dt, index) in dateTimes" :key="dt.id">
-        <td>{{dt.date}}</td>
-        <td>{{dt.time}}</td>
-        <td>{{dt.status}}</td>
-        <td><Button @click="confirmHandler(dt, index)">Confirm</Button></td>
-        <td><Button @click="removeHandler(dt, index)">Remove</Button></td>
+      <tr v-for="a in filteredAppointments" :key="a.id">
+        <td>{{a.date}}</td>
+        <td>{{a.time}}</td>
+        <td>{{a.status}}</td>
+        <td><Button @click="confirmHandler(a)">Confirm</Button></td>
+        <td><Button @click="removeHandler(a)">Remove</Button></td>
       </tr>
     </table>
   </div>
@@ -33,55 +33,57 @@ export default {
 
   data() {
     return {
+      appointments: [],
       doctors: [],
-      currentDoctor: {name:''}
+      currentDoctorName: ''
     }
   },
 
   computed: {
-    dateTimes() {
-      if (!this.currentDoctor.dateTimes) return []
-
-      return this.currentDoctor.dateTimes
+    filteredAppointments() {
+      return this.appointments.filter(a => a.doctor.name === this.currentDoctorName)
     }
   },
   
   created(){
     api.getDb()
-    .then(db => this.doctors = db)
+    .then(db => {
+      this.appointments = db.appointments
+      this.doctors = db.doctors
+    })
   },
 
   methods: {
     doctorChanged(event) {
-      this.currentDoctor = [{name:''}].concat(this.doctors).find(d => d.name === event.target.value)
+      this.currentDoctorName = event.target.value
     },
 
-    confirmHandler(dateTime, index) {
+    confirmHandler(appointment) {
       let info = {
-        id: dateTime.id,
-        rowVersion: dateTime.rowVersion
+        id: appointment.id,
+        rowVersion: appointment.rowVersion
       }
 
-      api.confirmDt(info)
+      api.confirmAppointment(info)
       .then(response => {
         if (response === 'Confirmed') {
-          this.currentDoctor.dateTimes.find(dt => dt.id === dateTime.id).status = 'Confirmed'
+          this.appointments.find(a => a.id === appointment.id).status = 'Confirmed'
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
         }
       })
     },
 
-    removeHandler(dateTime, index) {
+    removeHandler(appointment) {
       let info = {
-        id: dateTime.id,
-        rowVersion: dateTime.rowVersion
+        id: appointment.id,
+        rowVersion: appointment.rowVersion
       }
 
-      api.removeDt(info)
+      api.removeAppointment(info)
       .then(response => {
         if (response === 'Removed') {
-          this.currentDoctor.dateTimes.splice(index, 1)
+          this.appointments.splice(this.appointments.findIndex(a => a.id === appointment.id), 1)
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
         }

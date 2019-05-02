@@ -29,11 +29,9 @@ namespace server
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddDbContext<DoctorsContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+      services.AddDbContext<AppointmentsContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
       services.AddSingleton<Services.Calendar>();
-
-      services.AddSingleton<Services.BookedFiltrator>();
 
 
       services.AddDbContext<IdentityContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
