@@ -13,6 +13,7 @@ using System.Globalization;
 using server.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Data.SqlClient;
 
 namespace server.Controllers
 {
@@ -47,16 +48,21 @@ namespace server.Controllers
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult<string> RemoveDt(long doctorId, long dtId)
+    public ActionResult<string> RemoveDt(long id, byte[] rowVersion)
     {
-      var doctor = _dbContext.Doctors.Include(d => d.dateTimes).First(d => d.Id == doctorId);
-      var dateTime = doctor.dateTimes.Find(dt => dt.Id == dtId);
-
-      doctor.dateTimes.Remove(dateTime);
-      _dbContext.SaveChanges();
-
-
       Response.ContentType = "application/json";
+
+      try
+      {
+        var dateTime = new DateTimePair { Id = id, RowVersion = rowVersion };
+        _dbContext.DateTimePairs.Remove(dateTime);
+        _dbContext.SaveChanges();
+      }
+      catch (DbUpdateConcurrencyException)
+      {
+        return Ok("Fail");
+      }
+
       return Ok("Removed");
     }
 

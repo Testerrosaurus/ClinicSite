@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 namespace server.Models
 {
@@ -22,6 +23,9 @@ namespace server.Models
 
     public string date { get; set; }
     public string time { get; set; }
+
+    [Timestamp]
+    public byte[] RowVersion { get; set; }
   }
 
   public class Doctor
@@ -30,7 +34,6 @@ namespace server.Models
     public long Id { get; set; }
 
     public string name { get; set; }
-
     public List<Procedure> procedures { get; set; }
     public List<DateTimePair> dateTimes { get; set; }
   }

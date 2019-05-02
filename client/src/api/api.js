@@ -92,7 +92,7 @@ export default {
       credentials: 'include'
     }
 
-    return jsonResponsePromise(apiUrl + '/appointments/removeDt?doctorId=' + info.doctorId + '&dtId=' + info.dtId, options)
+    return jsonResponsePromise(apiUrl + '/appointments/removeDt?id=' + info.id + '&rowVersion=' + info.rowVersion, options)
   },
 
   getDb() {

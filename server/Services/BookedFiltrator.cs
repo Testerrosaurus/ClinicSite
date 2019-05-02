@@ -43,8 +43,11 @@ namespace server.Services
           var json = File.ReadAllText(appDir + "/DoctorsDatabase.json");
           var doctors = JsonConvert.DeserializeObject<List<Doctor>>(json);
 
-          //context.Database.ExecuteSqlCommand("TRUNCATE TABLE Doctors");
-          context.Doctors.RemoveRange(context.Doctors.Include(d => d.dateTimes).Include(d => d.procedures).ToList());
+
+          context.Procedures.RemoveRange(context.Procedures.ToList());
+          context.DateTimePairs.RemoveRange(context.DateTimePairs.ToList());
+          context.Doctors.RemoveRange(context.Doctors.ToList());
+
           context.Doctors.AddRange(doctors);
           context.SaveChanges();
         }

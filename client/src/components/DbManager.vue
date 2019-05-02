@@ -14,11 +14,11 @@
         <td>Status</td>
         <td></td>
       </tr>
-      <tr v-for="dt in dateTimes" :key="dt.id">
+      <tr v-for="(dt, index) in dateTimes" :key="dt.id">
         <td>{{dt.date}}</td>
         <td>{{dt.time}}</td>
         <td>Free</td>
-        <td><Button @click="removeHandler(dt.id)">Remove</Button></td>
+        <td><Button @click="removeHandler(dt, index)">Remove</Button></td>
       </tr>
     </table>
   </div>
@@ -55,16 +55,27 @@ export default {
       this.currentDoctor = [{name:''}].concat(this.doctors).find(d => d.name === event.target.value)
     },
 
-    removeHandler(id) {
+    removeHandler(dt, index) {
       let info = {
-        doctorId: this.currentDoctor.id,
-        dtId: id
+        id: dt.id,
+        rowVersion: dt.rowVersion
       }
 
       api.removeDt(info)
       .then(response => {
-        if (response === "Removed") {
-          this.currentDoctor.dateTimes.splice(this.currentDoctor.dateTimes.findIndex(dt => dt.id === id), 1)
+        if (response === 'Removed') {
+          this.currentDoctor.dateTimes.splice(index, 1)
+        } else if (response === 'Fail') {
+          alert('Fail: Item was modified since last page load')
+        }
+      })
+
+      api.removeDt(info)
+      .then(response => {
+        if (response === 'Removed') {
+          this.currentDoctor.dateTimes.splice(index, 1)
+        } else if (response === 'Fail') {
+          alert('Fail: Item was modified since last page load')
         }
       })
     }

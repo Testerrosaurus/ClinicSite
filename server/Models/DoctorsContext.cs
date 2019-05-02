@@ -9,6 +9,8 @@ namespace server.Models
   public class DoctorsContext : DbContext
   {
     public DbSet<Doctor> Doctors { get; set; }
+    public DbSet<Procedure> Procedures { get; set; }
+    public DbSet<DateTimePair> DateTimePairs { get; set; }
 
     public DoctorsContext(DbContextOptions<DoctorsContext> options) : base(options)
     {
