@@ -70,6 +70,8 @@ export default {
           this.appointments.find(a => a.id === appointment.id).status = 'Confirmed'
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
+        } else if (response === 'Invalid status') {
+          alert('Fail: Invalid status')
         }
       })
     },

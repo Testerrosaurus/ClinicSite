@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace server.Migrations
+namespace server.Migrations.Identity
 {
-    public partial class InitialCreate : Migration
+    public partial class InfoCascade : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

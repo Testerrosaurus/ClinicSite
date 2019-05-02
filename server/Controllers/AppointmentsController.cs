@@ -51,40 +51,54 @@ namespace server.Controllers
 
       try
       {
-        var appointment = new Appointment { Id = id, RowVersion = rowVersion };
-        _dbContext.Appointments.Attach(appointment);
-        appointment.Status = "Confirmed";
+        var appointment = _dbContext.Appointments.Include(a => a.Doctor).Include(a => a.Info).ThenInclude(i => i.Procedure).SingleOrDefault(a => a.Id == id);
+
+        if (appointment == null)
+          return Ok("Fail");
+
+        if (appointment.Status != "Unconfirmed")
+          return Ok("Invalid status");
+
+        _dbContext.Entry(appointment).State = EntityState.Detached;
+
+
+        var ap = new Appointment { Id = id, RowVersion = rowVersion };  // new entity with rowVersion recieved from client to get correct concurrency check
+
+        _dbContext.Appointments.Attach(ap);
+        ap.Status = "Confirmed";
         _dbContext.SaveChanges();
+
+
+
+        var start = DateTime.ParseExact(appointment.Date + " " + appointment.Time, "yyyy-MM-dd H:mm", CultureInfo.InvariantCulture);
+
+        Event newEvent = new Event()
+        {
+          Summary = appointment.Info.Procedure.Name + " - " + appointment.Doctor.Name,
+          Description = "Procedure: " + appointment.Info.Procedure.Name +
+            "\nDoctor Name: " + appointment.Doctor.Name + "\nPatient Name: " + appointment.Info.PatientName,
+          //Attendees = new EventAttendee[]
+          //{
+          //  new EventAttendee{ DisplayName = info.patient, Email = "" },
+          //  new EventAttendee{ DisplayName = info.doctor, Email = "" },
+          //},
+          Start = new EventDateTime()
+          {
+            DateTime = start,
+          },
+          End = new EventDateTime()
+          {
+            DateTime = start.AddMinutes(30),
+          }
+        };
+
+        EventsResource.InsertRequest request = _calendar.Service.Events.Insert(newEvent, _calendar.CalendarId);
+        Event createdEvent = request.Execute();
       }
       catch (DbUpdateConcurrencyException)
       {
         return Ok("Fail");
-      }
-
-
-      //var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd H:mm", CultureInfo.InvariantCulture);
-
-      //Event newEvent = new Event()
-      //{
-      //  Summary = info.procedure + " - " + info.doctor,
-      //  Description = "Procedure: " + info.procedure + "\nDoctor Name: " + info.doctor + "\nPatient Name: " + info.patient,
-      //  //Attendees = new EventAttendee[]
-      //  //{
-      //  //  new EventAttendee{ DisplayName = info.patient, Email = "" },
-      //  //  new EventAttendee{ DisplayName = info.doctor, Email = "" },
-      //  //},
-      //  Start = new EventDateTime()
-      //  {
-      //    DateTime = start,
-      //  },
-      //  End = new EventDateTime()
-      //  {
-      //    DateTime = start.AddMinutes(30),
-      //  }
-      //};
-
-      //EventsResource.InsertRequest request = _calendar.Service.Events.Insert(newEvent, _calendar.CalendarId);
-      //Event createdEvent = request.Execute();
+      }      
 
       return Ok("Confirmed");
     }
@@ -138,7 +152,9 @@ namespace server.Controllers
 
       try
       {
-        var appointment = new Appointment { Id = info.id, RowVersion = info.rowVersion };
+        var appointment = new Appointment { Id = info.id, RowVersion = info.rowVersion,
+          Info = new Information { PatientName = info.patient, Procedure = _dbContext.Procedures.Single(p => p.Name == info.procedure) } };
+
         _dbContext.Appointments.Attach(appointment);
         appointment.Status = "Unconfirmed";
         _dbContext.SaveChanges();

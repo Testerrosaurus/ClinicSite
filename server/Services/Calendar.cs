@@ -55,10 +55,10 @@ namespace server.Services
 
         //if (!context.Appointments.Any())
         {
-          context.Appointments.RemoveRange(context.Appointments.ToList());
           context.Doctors.RemoveRange(context.Doctors.ToList());
           context.Procedures.RemoveRange(context.Procedures.ToList());
           context.DoctorProcedures.RemoveRange(context.DoctorProcedures.ToList());
+          context.Appointments.RemoveRange(context.Appointments.ToList());
 
 
           var procedures = new List<Procedure>

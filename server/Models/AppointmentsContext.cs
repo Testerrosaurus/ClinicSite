@@ -30,6 +30,12 @@ namespace server.Models
       modelBuilder.Entity<DoctorProcedure>()
         .HasOne(dp => dp.Procedure)
         .WithMany(p => p.DoctorProcedures);
+
+      modelBuilder.Entity<Appointment>()
+       .HasOne(a => a.Info)
+       .WithOne()
+       .HasForeignKey("Information")
+       .OnDelete(DeleteBehavior.Cascade);
     }
   }
 }

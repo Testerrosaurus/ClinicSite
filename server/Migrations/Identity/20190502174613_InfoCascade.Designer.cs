@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using server.Models;
 
-namespace server.Migrations
+namespace server.Migrations.Identity
 {
     [DbContext(typeof(IdentityContext))]
-    [Migration("20190502133432_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20190502174613_InfoCascade")]
+    partial class InfoCascade
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

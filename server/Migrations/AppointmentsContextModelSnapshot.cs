@@ -3,17 +3,15 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using server.Models;
 
-namespace server.Migrations.Appointments
+namespace server.Migrations
 {
     [DbContext(typeof(AppointmentsContext))]
-    [Migration("20190502133446_InitialCreate")]
-    partial class InitialCreate
+    partial class AppointmentsContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,8 +29,6 @@ namespace server.Migrations.Appointments
 
                     b.Property<long?>("DoctorId");
 
-                    b.Property<long?>("InfoId");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate();
@@ -44,8 +40,6 @@ namespace server.Migrations.Appointments
                     b.HasKey("Id");
 
                     b.HasIndex("DoctorId");
-
-                    b.HasIndex("InfoId");
 
                     b.ToTable("Appointments");
                 });
@@ -78,9 +72,7 @@ namespace server.Migrations.Appointments
 
             modelBuilder.Entity("server.Models.Information", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<long>("Id");
 
                     b.Property<string>("PatientName");
 
@@ -111,10 +103,6 @@ namespace server.Migrations.Appointments
                     b.HasOne("server.Models.Doctor", "Doctor")
                         .WithMany()
                         .HasForeignKey("DoctorId");
-
-                    b.HasOne("server.Models.Information", "Info")
-                        .WithMany()
-                        .HasForeignKey("InfoId");
                 });
 
             modelBuilder.Entity("server.Models.DoctorProcedure", b =>
@@ -132,6 +120,11 @@ namespace server.Migrations.Appointments
 
             modelBuilder.Entity("server.Models.Information", b =>
                 {
+                    b.HasOne("server.Models.Appointment")
+                        .WithOne("Info")
+                        .HasForeignKey("server.Models.Information", "Id")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("server.Models.Procedure", "Procedure")
                         .WithMany()
                         .HasForeignKey("ProcedureId");
