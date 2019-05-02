@@ -13,16 +13,26 @@ namespace server.Models
     [Key]
     public long Id { get; set; }
 
-    public string name { get; set; }
+    public string Name { get; set; }
   }
+
+  //public class AppointmentInformation
+  //{
+  //  public Procedure Procedure { get; set; }
+  //  public string PatientName { get; set; }
+  //}
 
   public class DateTimePair
   {
     [Key]
     public long Id { get; set; }
 
-    public string date { get; set; }
-    public string time { get; set; }
+    public string Date { get; set; }
+    public string Time { get; set; }
+
+    public string Status { get; set; }
+
+   // public AppointmentInformation Info { get; set; }
 
     [Timestamp]
     public byte[] RowVersion { get; set; }
@@ -33,8 +43,8 @@ namespace server.Models
     [Key]
     public long Id { get; set; }
 
-    public string name { get; set; }
-    public List<Procedure> procedures { get; set; }
-    public List<DateTimePair> dateTimes { get; set; }
+    public string Name { get; set; }
+    public List<Procedure> Procedures { get; set; }
+    public List<DateTimePair> DateTimes { get; set; }
   }
 }

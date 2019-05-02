@@ -19,7 +19,7 @@ namespace server.Models
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       modelBuilder.Entity<Doctor>()
-          .HasMany(d => d.dateTimes)
+          .HasMany(d => d.DateTimes)
           .WithOne()
           .HasForeignKey("DoctorId")
           .OnDelete(DeleteBehavior.Cascade);

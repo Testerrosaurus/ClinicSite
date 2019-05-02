@@ -24,9 +24,10 @@ function jsonResponsePromise(url, options) {
   if (options && options.method === 'POST') {
     let csrfToken = getCookie("XSRF-TOKEN")
 
-    options.headers = {
-      'X-CSRF-TOKEN': csrfToken
-    }
+    if (!options.headers)
+      options.headers = {}
+
+    options.headers['X-CSRF-TOKEN'] = csrfToken
   }
 
   return new Promise(resolve => {
@@ -35,10 +36,10 @@ function jsonResponsePromise(url, options) {
       if (response.ok)
         return response.json()
       else
-        throw new Error('Error: ' + response.status + ' ' + response.statusText)
+        throw new Error(response.status + ' ' + response.statusText)
     })
     .catch(error => {
-      throw new Error('Error: ' + error.message)
+      throw new Error(error.message)
     })
     .then(json => {
       resolve(json)
@@ -86,6 +87,15 @@ export default {
     return jsonResponsePromise(apiUrl + '/account/logout', options)
   },
 
+  confirmDt(info) {
+    let options = {
+      method: 'POST',
+      credentials: 'include'
+    }
+
+    return jsonResponsePromise(apiUrl + '/appointments/confirmDt?id=' + info.id + '&rowVersion=' + info.rowVersion, options)
+  },
+
   removeDt(info) {
     let options = {
       method: 'POST',
@@ -111,6 +121,7 @@ export default {
   setAppointment(info) {
     let options = {
       method: 'POST',
+      credentials: 'include',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'

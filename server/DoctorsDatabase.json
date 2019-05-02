@@ -12,19 +12,23 @@
     "dateTimes": [
       {
         "date": "2019-04-26",
-        "time": "13:00"
+        "time": "13:00",
+        "status": "Free"
       },
       {
         "date": "2019-04-26",
-        "time": "14:00"
+        "time": "14:00",
+        "status": "Free"
       },
       {
         "date": "2019-04-27",
-        "time": "10:00"
+        "time": "10:00",
+        "status": "Free"
       },
       {
         "date": "2019-04-27",
-        "time": "11:00"
+        "time": "11:00",
+        "status": "Free"
       }
     ]
   },
@@ -41,27 +45,33 @@
     "dateTimes": [
       {
         "date": "2019-04-26",
-        "time": "13:30"
+        "time": "13:30",
+        "status": "Free"
       },
       {
         "date": "2019-04-26",
-        "time": "14:30"
+        "time": "14:30",
+        "status": "Free"
       },
       {
         "date": "2019-04-27",
-        "time": "8:30"
+        "time": "8:30",
+        "status": "Free"
       },
       {
         "date": "2019-04-27",
-        "time": "9:30"
+        "time": "9:30",
+        "status": "Free"
       },
       {
         "date": "2019-04-28",
-        "time": "7:30"
+        "time": "7:30",
+        "status": "Free"
       },
       {
         "date": "2019-04-28",
-        "time": "9:30"
+        "time": "9:30",
+        "status": "Free"
       }
     ]
   }

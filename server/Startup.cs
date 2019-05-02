@@ -100,22 +100,6 @@ namespace server
 
       app.UseAuthentication();
 
-      //app.Use(async (context, next) =>
-      //{
-      //  string path = context.Request.Path.Value;
-
-      //  if (string.Equals(path, "/api/account/isLoggedIn", StringComparison.OrdinalIgnoreCase))
-      //  {
-      //    // The request token can be sent as a JavaScript-readable cookie
-      //    var tokens = antiforgery.GetAndStoreTokens(context);
-      //    context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken,
-      //        new CookieOptions() { HttpOnly = false });
-      //  }
-
-      //  await next();
-      //});
-
-
       app.UseMvc();
     }
   }

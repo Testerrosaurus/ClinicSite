@@ -24,7 +24,6 @@ namespace server.Controllers
     static object _locker = new object();
 
     private readonly Services.Calendar _calendar;
-    private readonly List<Doctor> _filtered_db;
 
     private readonly DoctorsContext _dbContext;
 
@@ -33,8 +32,6 @@ namespace server.Controllers
       _calendar = calendar;
 
       _dbContext = context;
-
-      _filtered_db = filtrator.Filtered;
     }
 
     [Authorize]
@@ -42,7 +39,56 @@ namespace server.Controllers
     public ActionResult<List<Doctor>> GetDb()
     {
       Response.ContentType = "application/json";
-      return _dbContext.Doctors.Include(d => d.dateTimes).Include(d => d.procedures).ToList();
+      return _dbContext.Doctors.Include(d => d.DateTimes).Include(d => d.Procedures).ToList();
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public ActionResult<string> ConfirmDt(long id, byte[] rowVersion)
+    {
+      Response.ContentType = "application/json";
+
+      try
+      {
+        var dateTime = new DateTimePair { Id = id, RowVersion = rowVersion };
+        _dbContext.DateTimePairs.Attach(dateTime);
+        dateTime.Status = "Confirmed";
+        _dbContext.SaveChanges();
+      }
+      catch (DbUpdateConcurrencyException)
+      {
+        return Ok("Fail");
+      }
+
+      var dt = _dbContext.DateTimePairs.Find(id);
+
+
+      //var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd H:mm", CultureInfo.InvariantCulture);
+
+      //Event newEvent = new Event()
+      //{
+      //  Summary = info.procedure + " - " + info.doctor,
+      //  Description = "Procedure: " + info.procedure + "\nDoctor Name: " + info.doctor + "\nPatient Name: " + info.patient,
+      //  //Attendees = new EventAttendee[]
+      //  //{
+      //  //  new EventAttendee{ DisplayName = info.patient, Email = "" },
+      //  //  new EventAttendee{ DisplayName = info.doctor, Email = "" },
+      //  //},
+      //  Start = new EventDateTime()
+      //  {
+      //    DateTime = start,
+      //  },
+      //  End = new EventDateTime()
+      //  {
+      //    DateTime = start.AddMinutes(30),
+      //  }
+      //};
+
+      //EventsResource.InsertRequest request = _calendar.Service.Events.Insert(newEvent, _calendar.CalendarId);
+      //Event createdEvent = request.Execute();
+
+      return Ok("Confirmed");
     }
 
     [Authorize]
@@ -66,21 +112,26 @@ namespace server.Controllers
       return Ok("Removed");
     }
 
-
     [HttpGet]
     public ActionResult<List<Doctor>> GetFilteredDb()
     {
       Response.ContentType = "application/json";
-      return _filtered_db;
+
+      var doctors = _dbContext.Doctors.Include(d => d.DateTimes).Include(d => d.Procedures).ToList();
+      foreach (var doctor in doctors)
+      {
+        doctor.DateTimes.RemoveAll(dt => dt.Status != "Free");
+      }
+
+      return doctors;
     }
 
     public struct AppointmentInfo
     {
       public string patient;
       public string procedure;
-      public string doctor;
-      public string date;
-      public string time;
+      public long id;
+      public byte[] rowVersion;
     }
 
     [HttpPost]
@@ -89,47 +140,22 @@ namespace server.Controllers
     {
       Response.ContentType = "application/json";
 
-
-      if (info.patient == "" || info.procedure == "" || info.doctor == "" ||
-          info.date == "" || info.time == "")
+      if (info.patient == "" || info.procedure == "" || info.id == 0)
         return Ok("Invalid info");
 
-      int deletedCount = -1;
-      lock (_locker)
+      try
       {
-        deletedCount = _filtered_db.Find(d => d.name == info.doctor).dateTimes
-        .RemoveAll(dt => dt.date == info.date && dt.time == info.time);
+        var dateTime = new DateTimePair { Id = info.id, RowVersion = info.rowVersion };
+        _dbContext.DateTimePairs.Attach(dateTime);
+        dateTime.Status = "Unconfirmed";
+        _dbContext.SaveChanges();
+      }
+      catch (DbUpdateConcurrencyException)
+      {
+        return Ok("Info changed");
       }
 
-      if (deletedCount == 0) // didn't delete <=> this datetime is already booked
-        return Ok("Already booked");
-
-
-      var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd H:mm", CultureInfo.InvariantCulture);
-
-      Event newEvent = new Event()
-      {
-        Summary = info.procedure + " - " + info.doctor,
-        Description = "Procedure: " + info.procedure + "\nDoctor Name: " + info.doctor + "\nPatient Name: " + info.patient,
-        //Attendees = new EventAttendee[]
-        //{
-        //  new EventAttendee{ DisplayName = info.patient, Email = "" },
-        //  new EventAttendee{ DisplayName = info.doctor, Email = "" },
-        //},
-        Start = new EventDateTime()
-        {
-          DateTime = start,
-        },
-        End = new EventDateTime()
-        {
-          DateTime = start.AddMinutes(30),
-        }
-      };
-
-      EventsResource.InsertRequest request = _calendar.Service.Events.Insert(newEvent, _calendar.CalendarId);
-      Event createdEvent = request.Execute();
-
-
+     
       return Ok("Created");
     }
   }

@@ -17,7 +17,8 @@
       <tr v-for="(dt, index) in dateTimes" :key="dt.id">
         <td>{{dt.date}}</td>
         <td>{{dt.time}}</td>
-        <td>Free</td>
+        <td>{{dt.status}}</td>
+        <td><Button @click="confirmHandler(dt, index)">Confirm</Button></td>
         <td><Button @click="removeHandler(dt, index)">Remove</Button></td>
       </tr>
     </table>
@@ -55,20 +56,27 @@ export default {
       this.currentDoctor = [{name:''}].concat(this.doctors).find(d => d.name === event.target.value)
     },
 
-    removeHandler(dt, index) {
+    confirmHandler(dateTime, index) {
       let info = {
-        id: dt.id,
-        rowVersion: dt.rowVersion
+        id: dateTime.id,
+        rowVersion: dateTime.rowVersion
       }
 
-      api.removeDt(info)
+      api.confirmDt(info)
       .then(response => {
-        if (response === 'Removed') {
-          this.currentDoctor.dateTimes.splice(index, 1)
+        if (response === 'Confirmed') {
+          this.currentDoctor.dateTimes.find(dt => dt.id === dateTime.id).status = 'Confirmed'
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
         }
       })
+    },
+
+    removeHandler(dateTime, index) {
+      let info = {
+        id: dateTime.id,
+        rowVersion: dateTime.rowVersion
+      }
 
       api.removeDt(info)
       .then(response => {

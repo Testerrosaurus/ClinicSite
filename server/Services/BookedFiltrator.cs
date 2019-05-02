@@ -52,7 +52,7 @@ namespace server.Services
           context.SaveChanges();
         }
 
-        var db = context.Doctors.Include(d => d.dateTimes).Include(d => d.procedures).ToList();
+        var db = context.Doctors.Include(d => d.DateTimes).Include(d => d.Procedures).ToList();
         Filtered = GetFilteredDb(db);
       }
     }
@@ -62,10 +62,10 @@ namespace server.Services
     {
       foreach (var doctor in db)
       {
-        doctor.dateTimes.RemoveAll(dt =>
-          _booked.ContainsKey(doctor.name) &&
-          _booked[doctor.name].Exists(bdt =>
-            dt.date == bdt.date && dt.time == bdt.time)
+        doctor.DateTimes.RemoveAll(dt =>
+          _booked.ContainsKey(doctor.Name) &&
+          _booked[doctor.Name].Exists(bdt =>
+            dt.Date == bdt.Date && dt.Time == bdt.Time)
           );
       }
 
@@ -98,7 +98,7 @@ namespace server.Services
           string date = start.Year + "-" + start.Month.ToString("00") + "-" + start.Day.ToString("00");
           string time = start.Hour + ":" + start.Minute.ToString("00");
 
-          var dt = new DateTimePair { date = date, time = time };
+          var dt = new DateTimePair { Date = date, Time = time };
           if (ba.ContainsKey(doctor))
           {
             ba[doctor].Add(dt);

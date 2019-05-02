@@ -29,9 +29,9 @@
 
     <br />
     Time:
-    <select :value="time" @change="timeChanged($event)">
-      <option v-for="time in timesList" :key="time" :value="time">
-        {{time}}
+    <select :value="currentDt.time" @change="timeChanged($event)">
+      <option v-for="dt in timesList" :key="dt.id" :value="dt.time">
+        {{dt.time}}
       </option>
     </select>
 
@@ -59,7 +59,7 @@ export default {
       procedureName: '',
       doctorName: '',
       date: '',
-      time: '',
+      currentDt: {time: ''},
 
       doctors: [],
       proceduresNames: proceduresNames
@@ -90,7 +90,7 @@ export default {
       let doctor = this.doctors.find(d => d.name === this.doctorName)
 
       if (doctor) {
-        return [''].concat(doctor.dateTimes.filter(dt => dt.date === this.date).map(dt => dt.time))
+        return [{time: ''}].concat(doctor.dateTimes.filter(dt => dt.date === this.date))
       }
 
       return ['']
@@ -115,20 +115,19 @@ export default {
 
     dateChanged(event) {
       this.date = event.target.value
-      this.time = ''
+      this.currentDt = {time: ''}
     },
 
     timeChanged(event) {
-      this.time = event.target.value
+      this.currentDt = this.timesList.find(dt => dt.time === event.target.value)
     },
 
     btn1ClickHandler() {
       let info = {
         patient: this.patientName,
         procedure: this.procedureName,
-        doctor: this.doctorName,
-        date: this.date,
-        time: this.time
+        id: this.currentDt.id,
+        rowVersion: this.currentDt.rowVersion
       }
 
       api.setAppointment(info).then(answer => {
@@ -138,11 +137,11 @@ export default {
         else if (answer === 'Invalid info') {
           alert('Invalid information')
         }
-        else if (answer === 'Already booked') {
+        else if (answer === 'Info changed') {
           api.getDb()
           .then(db => {
             this.doctors = db
-            alert('Time was already booked')
+            alert('Fail: Item was modified since last page load')
           })
         }
       })
