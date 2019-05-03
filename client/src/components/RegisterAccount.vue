@@ -27,8 +27,8 @@ export default {
 
     registerHandler() {
       let info = {
-        email: 'userName1email@mail.ru',
-        userName: 'userName1',
+        email: 'userName2email@mail.ru',
+        userName: 'userName2',
         password: 'Password123!'
       }
 

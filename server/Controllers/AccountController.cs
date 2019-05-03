@@ -28,17 +28,24 @@ namespace server.Controllers
       return new JsonResult(User.Identity.IsAuthenticated);
     }
 
+    public struct RegisterInfo
+    {
+      public string email;
+      public string userName;
+      public string password;
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult<string>> Register(string email, string userName, string password)
+    public async Task<ActionResult<string>> Register([FromBody]RegisterInfo info)
     {
       Response.ContentType = "application/json";
 
       if (ModelState.IsValid)
       {
-        IdentityUser user = new IdentityUser { Email = email, UserName = userName };
+        IdentityUser user = new IdentityUser { Email = info.email, UserName = info.userName };
 
-        var result = await _userManager.CreateAsync(user, password);
+        var result = await _userManager.CreateAsync(user, info.password);
         if (result.Succeeded)
         {
           await _signInManager.SignInAsync(user, false);
@@ -59,19 +66,25 @@ namespace server.Controllers
       return Ok("Registered");
     }
 
+    public struct LoginInfo
+    {
+      public string userName;
+      public string password;
+      public bool remember;
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<ActionResult<string>> Login(string userName, string password, bool remember)
+    public async Task<ActionResult<string>> Login([FromBody]LoginInfo info)
     {
       Response.ContentType = "application/json";
 
       if (ModelState.IsValid)
       {
-        var result = await _signInManager.PasswordSignInAsync(userName, password, remember, false);
+        var result = await _signInManager.PasswordSignInAsync(info.userName, info.password, info.remember, false);
         if (result.Succeeded)
         {
-          var user = await _userManager.FindByNameAsync(userName);
+          var user = await _userManager.FindByNameAsync(info.userName);
           HttpContext.User = await _signInManager.CreateUserPrincipalAsync(user);
 
           return Ok("Success");

@@ -63,19 +63,29 @@ export default {
   register(info) {
     let options = {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(info)
     }
 
-    return jsonResponsePromise(apiUrl + '/account/register?email=' + info.email + '&userName=' + info.userName + '&password=' + info.password, options)
+    return jsonResponsePromise(apiUrl + '/account/register', options)
   },
 
   login(info) {
     let options = {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(info)
     }
 
-    return jsonResponsePromise(apiUrl + '/account/login?userName=' + info.userName + '&password=' + info.password + '&remember=' + info.remember, options)
+    return jsonResponsePromise(apiUrl + '/account/login', options)
   },
 
   logout() {
@@ -90,19 +100,29 @@ export default {
   confirmAppointment(info) {
     let options = {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(info)
     }
 
-    return jsonResponsePromise(apiUrl + '/appointments/confirmAppointment?id=' + info.id + '&rowVersion=' + info.rowVersion, options)
+    return jsonResponsePromise(apiUrl + '/appointments/confirmAppointment', options)
   },
 
   removeAppointment(info) {
     let options = {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(info)
     }
 
-    return jsonResponsePromise(apiUrl + '/appointments/removeAppointment?id=' + info.id + '&rowVersion=' + info.rowVersion, options)
+    return jsonResponsePromise(apiUrl + '/appointments/removeAppointment', options)
   },
 
   getDb() {

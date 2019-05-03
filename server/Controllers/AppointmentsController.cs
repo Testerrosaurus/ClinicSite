@@ -42,16 +42,22 @@ namespace server.Controllers
       return Ok(new { Appointments = appointments, Doctors = doctors });
     }
 
+    public struct AInfo
+    {
+      public long id;
+      public byte[] rowVersion;
+    }
+
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult<string> ConfirmAppointment(long id, byte[] rowVersion)
+    public ActionResult<string> ConfirmAppointment([FromBody]AInfo info)
     {
       Response.ContentType = "application/json";
 
       try
       {
-        var appointment = _dbContext.Appointments.Include(a => a.Doctor).Include(a => a.Info).ThenInclude(i => i.Procedure).SingleOrDefault(a => a.Id == id);
+        var appointment = _dbContext.Appointments.Include(a => a.Doctor).Include(a => a.Info).ThenInclude(i => i.Procedure).SingleOrDefault(a => a.Id == info.id);
 
         if (appointment == null)
           return Ok("Fail");
@@ -62,7 +68,7 @@ namespace server.Controllers
         _dbContext.Entry(appointment).State = EntityState.Detached;
 
 
-        var ap = new Appointment { Id = id, RowVersion = rowVersion };  // new entity with rowVersion recieved from client to get correct concurrency check
+        var ap = new Appointment { Id = info.id, RowVersion = info.rowVersion };  // new entity with rowVersion recieved from client to get correct concurrency check
 
         _dbContext.Appointments.Attach(ap);
         ap.Status = "Confirmed";
@@ -106,13 +112,13 @@ namespace server.Controllers
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult<string> RemoveAppointment(long id, byte[] rowVersion)
+    public ActionResult<string> RemoveAppointment([FromBody]AInfo info)
     {
       Response.ContentType = "application/json";
 
       try
       {
-        var appointment = new Appointment { Id = id, RowVersion = rowVersion };
+        var appointment = new Appointment { Id = info.id, RowVersion = info.rowVersion };
         _dbContext.Appointments.Remove(appointment);
         _dbContext.SaveChanges();
       }

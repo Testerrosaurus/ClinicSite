@@ -27,7 +27,7 @@ export default {
 
     loginHandler() {
       let info = {
-        userName: 'userName1',
+        userName: 'userName2',
         password: 'Password123!',
         remember: false
       }

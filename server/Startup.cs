@@ -78,8 +78,6 @@ namespace server
         app.UseCors(builder => builder.WithOrigins("http://localhost:8080").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
       }
 
-      app.UseStaticFiles();
-
       app.Use(async (context, next) =>
       {
         var path = context.Request.Path.Value;
@@ -94,6 +92,8 @@ namespace server
           await next();
         }
       });
+
+      app.UseStaticFiles();
 
 
       app.UseAuthentication();

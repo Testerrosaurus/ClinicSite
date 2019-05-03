@@ -1,18 +1,18 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link>|
-      <router-link to="/DbManagerPage">Manage database</router-link> |
-      <router-link to="/AppointmentPage">Set appointment</router-link>
-    </div>
-
-    <router-view/>
-
     <button v-if="loggedIn" @click="logoutHandler">Logout</button>
     <div v-else id="nav">
       <router-link to="/LoginForm">Sign in</router-link> |
       <router-link to="/RegisterAccount">Register</router-link>
     </div>
+    
+    <div id="nav">
+      <router-link to="/">Home</router-link>|
+      <router-link to="/DbManagerPage">Manage appointments</router-link> |
+      <router-link to="/AppointmentPage">Set appointment</router-link>
+    </div>
+
+    <router-view/>
   </div>
 </template>
 
