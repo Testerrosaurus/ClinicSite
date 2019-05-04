@@ -12,25 +12,10 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="procedure">Procedure:</label>
-        </b-col>
-        <b-col cols="9">
-          <b-form-select id="procedure" :value="procedureName" @change="procedureChanged($event)">
-            <option value="" disabled="true">
-              Select
-            </option>
-            <option v-for="pn in proceduresNamesList" :key="pn" :value="pn">
-              {{pn}}
-            </option>
-          </b-form-select>
-        </b-col>
-      </b-row>
-      <b-row class="my-1">
-        <b-col cols="3">
           <label for="doctor">Doctor:</label>
         </b-col>
         <b-col cols="9">
-          <b-form-select id="doctor" :disabled="procedureName === ''" :value="doctorName" @change="doctorChanged($event)">
+          <b-form-select id="doctor" :value="doctorName" @change="doctorChanged($event)">
             <option value="" disabled="true">
               Select
             </option>
@@ -49,7 +34,7 @@
             <option value="" disabled="true">
               Select
             </option>
-            <option v-for="(date, index) in datesList" :key="index" :value="date">
+            <option v-for="date in datesList" :key="date" :value="date">
               {{date}}
             </option>
           </b-form-select>
@@ -60,12 +45,12 @@
           <label for="time">Time:</label>
         </b-col>
         <b-col cols="9">
-          <b-form-select id="time" :disabled="date === ''" :value="currentAppointment.time" @change="timeChanged($event)">
+          <b-form-select id="time" :disabled="date === ''" :value="time" @change="timeChanged($event)">
             <option value="" disabled="true">
               Select
             </option>
-            <option v-for="a in appointmentsList" :key="a.time" :value="a.time">
-              {{a.time}}
+            <option v-for="time in timesList" :key="time" :value="time">
+              {{time}}
             </option>
           </b-form-select>
         </b-col>
@@ -89,77 +74,62 @@ export default {
     return {
       patientName: '',
 
-      procedureName: '',
       doctorName: '',
       date: '',
-      currentAppointment: {time: ''},
+      time: '',
 
-      appointments: [],
-      procedures: [],
-      time: null
+      dateTimes: {}
     }
   },
 
   computed: {
-    proceduresNamesList() { 
-      return this.procedures.map(p => p.name)
-    },
-
     doctorsNamesList() {
-      let procedure = this.procedures.find(p => p.name == this.procedureName)
-
-      if (procedure)
-        return procedure.doctors
-      else
-        return []
+      return Object.keys(this.dateTimes)
     },
 
     datesList() {
-      return this.appointments.filter(a => a.doctor.name === this.doctorName).map(a => a.date)
+      if (this.doctorName === '') return []
+
+      return [...new Set(this.dateTimes[this.doctorName].map(dt => dt.date))]
     },
 
-    appointmentsList() {
-      return this.appointments.filter(a => a.date === this.date && a.doctor.name === this.doctorName)
+    timesList() {
+      if (this.doctorName === '') return []
+
+      return this.dateTimes[this.doctorName].filter(dt => dt.date === this.date).map(dt => dt.time)
     }
   },
 
   created(){
-    api.getFilteredDb()
-    .then(db => {
-      this.appointments = db.appointments
-      this.procedures = db.procedures
+    api.getAvailableDateTimes()
+    .then(dateTimes => {
+      this.dateTimes = dateTimes
+      console.log(dateTimes)
     })
   },
 
   methods: {
-    procedureChanged(event) {
-      this.procedureName = event
-      this.doctorName = ''
-      this.date = ''
-      this.currentAppointment = {time: ''}
-    },
-
     doctorChanged(event) {
       this.doctorName = event
       this.date = ''
-      this.currentAppointment = {time: ''}
+      this.time = ''
     },
 
     dateChanged(event) {
       this.date = event
-      this.currentAppointment = {time: ''}
+      this.time = ''
     },
 
     timeChanged(event) {
-      this.currentAppointment = this.appointmentsList.find(a => a.time === event)
+      this.time = event
     },
 
     btn1ClickHandler() {
       let info = {
         patient: this.patientName,
-        procedure: this.procedureName,
-        id: this.currentAppointment.id,
-        rowVersion: this.currentAppointment.rowVersion
+        doctor: this.doctorName,
+        date: this.date,
+        time: this.time
       }
 
       api.setAppointment(info).then(answer => {

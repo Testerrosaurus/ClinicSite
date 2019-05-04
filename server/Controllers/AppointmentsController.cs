@@ -37,7 +37,7 @@ namespace server.Controllers
     public ActionResult<List<Appointment>> GetDb()
     {
       var appointments = _dbContext.Appointments.Include(a => a.Doctor).Include(a => a.Info).ToList();
-      var doctors = _dbContext.Doctors.Select(p => new { p.Name, Doctors = p.DoctorProcedures.Select(dp => dp.Procedure.Name) }).ToList();
+      var doctors = _dbContext.Doctors.Select(p => new { p.Name }).ToList();
 
       return Ok(new { Appointments = appointments, Doctors = doctors });
     }
@@ -46,18 +46,19 @@ namespace server.Controllers
     {
       public long id;
       public byte[] rowVersion;
+      public string date;
+      public string time;
+      public int duration;
     }
 
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult<string> ConfirmAppointment([FromBody]AInfo info)
+    public IActionResult ConfirmAppointment([FromBody]AInfo info)
     {
-      Response.ContentType = "application/json";
-
       try
       {
-        var appointment = _dbContext.Appointments.Include(a => a.Doctor).Include(a => a.Info).ThenInclude(i => i.Procedure).SingleOrDefault(a => a.Id == info.id);
+        var appointment = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).SingleOrDefault(a => a.Id == info.id);
 
         if (appointment == null)
           return Ok("Fail");
@@ -65,23 +66,24 @@ namespace server.Controllers
         if (appointment.Status != "Unconfirmed")
           return Ok("Invalid status");
 
-        _dbContext.Entry(appointment).State = EntityState.Detached;
 
+        appointment.RowVersion = info.rowVersion;
+        appointment.Status = "Confirmed";
 
-        var ap = new Appointment { Id = info.id, RowVersion = info.rowVersion };  // new entity with rowVersion recieved from client to get correct concurrency check
+        var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd HH:mm", null);
+        appointment.Start = start;
+        appointment.End = start.AddMinutes(info.duration);
 
-        _dbContext.Appointments.Attach(ap);
-        ap.Status = "Confirmed";
+        _dbContext.Appointments.Update(appointment);
         _dbContext.SaveChanges();
 
 
 
-        var start = DateTime.ParseExact(appointment.Date + " " + appointment.Time, "yyyy-MM-dd H:mm", CultureInfo.InvariantCulture);
 
         Event newEvent = new Event()
         {
-          Summary = appointment.Info.Procedure.Name + " - " + appointment.Doctor.Name,
-          Description = "Procedure: " + appointment.Info.Procedure.Name +
+          Summary = appointment.Info.PatientName + " - " + appointment.Doctor.Name,
+          Description = "Procedure: " + appointment.Info.AdditionalInfo +
             "\nDoctor Name: " + appointment.Doctor.Name + "\nPatient Name: " + appointment.Info.PatientName,
           //Attendees = new EventAttendee[]
           //{
@@ -90,11 +92,11 @@ namespace server.Controllers
           //},
           Start = new EventDateTime()
           {
-            DateTime = start,
+            DateTime = appointment.Start,
           },
           End = new EventDateTime()
           {
-            DateTime = start.AddMinutes(30),
+            DateTime = appointment.End,
           }
         };
 
@@ -130,39 +132,87 @@ namespace server.Controllers
       return Ok("Removed");
     }
 
-    [HttpGet]
-    public ActionResult<dynamic> GetFilteredDb()
+    private (bool, DateTime) IsAvailable(DateTime dt, List<Appointment> appointments)
     {
-      var appointments = _dbContext.Appointments.Include(d => d.Doctor).Where(a => a.Status == "Free").ToList();
-      var procedures = _dbContext.Procedures.Select(p => new { p.Name, Doctors = p.DoctorProcedures.Select(dp => dp.Doctor.Name) }).ToList();
+      var start = dt;
+      var end = dt.AddMinutes(30);
 
-      return Ok(new { Appointments = appointments, Procedures = procedures });
+      foreach (var a in appointments)
+      {
+        if (!(a.End < start.AddSeconds(1) || a.Start > end.AddSeconds(-1))) return (false, a.End);
+      }
+
+      return (true, new DateTime());
+    }
+
+    [HttpGet]
+    public IActionResult GetAvailableDateTimes()
+    {
+      var allDateTimes = new Dictionary<string, List<dynamic>>();
+
+      var freeTimes = _dbContext.FreeTimes.AsNoTracking().Include(ft => ft.Doctor);
+      var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Where(a => a.Status == "Confirmed").ToList();
+
+      foreach (var ft in freeTimes)
+      {
+        List<dynamic> dateTimes;
+        if (allDateTimes.ContainsKey(ft.Doctor.Name))
+          dateTimes = allDateTimes[ft.Doctor.Name];
+        else
+          dateTimes = new List<dynamic>();
+
+        int count = 0;
+        var dt = ft.Start;
+        while (dt.AddMinutes(30) < ft.End.AddSeconds(1))
+        {
+          var check = IsAvailable(dt, appointments);
+          if (!check.Item1)
+          {
+            //dt = dt.AddMinutes(30);
+            dt = check.Item2;
+            continue;
+          }
+
+          dateTimes.Add(new { Date = dt.Year + "-" + dt.Month.ToString("00") + "-" + dt.Day.ToString("00"), Time = dt.Hour.ToString("00") + ":" + dt.Minute.ToString("00") });
+          dt = dt.AddMinutes(30);
+
+          if (++count > 24 * 60 / 30) break;
+        }
+
+        allDateTimes[ft.Doctor.Name] = dateTimes;
+      }
+
+      return Ok(allDateTimes);
     }
 
     public struct AppointmentInfo
     {
       public string patient;
-      public string procedure;
-      public long id;
-      public byte[] rowVersion;
+      public string doctor;
+      public string date;
+      public string time;
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult<string> SetAppointment([FromBody]AppointmentInfo info)
+    public IActionResult SetAppointment([FromBody]AppointmentInfo info)
     {
-      Response.ContentType = "application/json";
-
-      if (info.patient == "" || info.procedure == "" || info.id == 0)
+      if (info.patient == "" || info.doctor == "" || info.date == "" || info.time == "")
         return Ok("Invalid info");
 
       try
       {
-        var appointment = new Appointment { Id = info.id, RowVersion = info.rowVersion,
-          Info = new Information { PatientName = info.patient, Procedure = _dbContext.Procedures.Single(p => p.Name == info.procedure) } };
+        var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd HH:mm", null);
+
+        var appointment = new Appointment {
+          Doctor = _dbContext.Doctors.First(d => d.Name == info.doctor),
+          Start = start,
+          End = start.AddMinutes(30),
+          Info = new Information { PatientName = info.patient },
+          Status = "Unconfirmed"
+        };
 
         _dbContext.Appointments.Attach(appointment);
-        appointment.Status = "Unconfirmed";
         _dbContext.SaveChanges();
       }
       catch (DbUpdateConcurrencyException)

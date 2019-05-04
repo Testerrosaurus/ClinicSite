@@ -50,6 +50,7 @@ export default {
     .then(db => {
       this.appointments = db.appointments
       this.doctors = db.doctors
+      console.log(db)
     })
   },
 

@@ -56,53 +56,49 @@ namespace server.Services
         //if (!context.Appointments.Any())
         {
           context.Doctors.RemoveRange(context.Doctors.ToList());
-          context.Procedures.RemoveRange(context.Procedures.ToList());
-          context.DoctorProcedures.RemoveRange(context.DoctorProcedures.ToList());
+          context.FreeTimes.RemoveRange(context.FreeTimes.ToList());
           context.Appointments.RemoveRange(context.Appointments.ToList());
 
 
-          var procedures = new List<Procedure>
-          {
-            new Procedure { Name = "procedure1" },
-            new Procedure { Name = "procedure2" },
-            new Procedure { Name = "procedure3" }
-          };
-
           var doctors = new List<Doctor>
           {
-            new Doctor { Name = "doctor1",
-              DoctorProcedures = new List<DoctorProcedure> {
-                new DoctorProcedure { Procedure = procedures.Find(p => p.Name == "procedure1") },
-                new DoctorProcedure { Procedure = procedures.Find(p => p.Name == "procedure2") }
-              }
-            },
-            new Doctor { Name = "doctor2",
-              DoctorProcedures = new List<DoctorProcedure> {
-                new DoctorProcedure { Procedure = procedures.Find(p => p.Name == "procedure2") },
-                new DoctorProcedure { Procedure = procedures.Find(p => p.Name == "procedure3") }
-              }
-            }
+            new Doctor { Name = "doctor1"},
+            new Doctor { Name = "doctor2"}
           };
 
           context.Doctors.AddRange(doctors);
 
 
-          var appointments = new List<Appointment>
+          var freeTimes = new List<FreeTime>
           {
-            new Appointment { Date = "2019-04-26", Time = "13:00", Status = "Free", Doctor = doctors.Find(d => d.Name == "doctor1") },
-            new Appointment { Date = "2019-04-26", Time = "14:00", Status = "Free", Doctor = doctors.Find(d => d.Name == "doctor1") },
-            new Appointment { Date = "2019-04-27", Time = "10:00", Status = "Free", Doctor = doctors.Find(d => d.Name == "doctor1") },
-            new Appointment { Date = "2019-04-27", Time = "11:00", Status = "Free", Doctor = doctors.Find(d => d.Name == "doctor1") },
-
-            new Appointment { Date = "2019-04-26", Time = "8:30", Status = "Free", Doctor = doctors.Find(d => d.Name == "doctor2") },
-            new Appointment { Date = "2019-04-26", Time = "9:30", Status = "Free", Doctor = doctors.Find(d => d.Name == "doctor2") },
-            new Appointment { Date = "2019-04-27", Time = "11:30", Status = "Free", Doctor = doctors.Find(d => d.Name == "doctor2") },
-            new Appointment { Date = "2019-04-27", Time = "12:30", Status = "Free", Doctor = doctors.Find(d => d.Name == "doctor2") },
-            new Appointment { Date = "2019-04-28", Time = "7:30", Status = "Free", Doctor = doctors.Find(d => d.Name == "doctor2") },
-            new Appointment { Date = "2019-04-28", Time = "10:05", Status = "Free", Doctor = doctors.Find(d => d.Name == "doctor2") }
+            new FreeTime {
+              Start = DateTime.ParseExact("2019-04-26 15:00", "yyyy-MM-dd HH:mm", null),
+              End = DateTime.ParseExact("2019-04-26 17:00", "yyyy-MM-dd HH:mm", null),
+              Doctor = doctors.Find(d => d.Name == "doctor1")
+            },
+            new FreeTime {
+              Start = DateTime.ParseExact("2019-04-26 18:00", "yyyy-MM-dd HH:mm", null),
+              End = DateTime.ParseExact("2019-04-26 21:00", "yyyy-MM-dd HH:mm", null),
+              Doctor = doctors.Find(d => d.Name == "doctor1")
+            },
+            new FreeTime {
+              Start = DateTime.ParseExact("2019-04-28 09:30", "yyyy-MM-dd HH:mm", null),
+              End = DateTime.ParseExact("2019-04-28 13:30", "yyyy-MM-dd HH:mm", null),
+              Doctor = doctors.Find(d => d.Name == "doctor1")
+            },
+            new FreeTime {
+              Start = DateTime.ParseExact("2019-04-26 16:20", "yyyy-MM-dd HH:mm", null),
+              End = DateTime.ParseExact("2019-04-26 20:40", "yyyy-MM-dd HH:mm", null),
+              Doctor = doctors.Find(d => d.Name == "doctor2")
+            },
+            new FreeTime {
+              Start = DateTime.ParseExact("2019-04-27 16:00", "yyyy-MM-dd HH:mm", null),
+              End = DateTime.ParseExact("2019-04-27 20:00", "yyyy-MM-dd HH:mm", null),
+              Doctor = doctors.Find(d => d.Name == "doctor2")
+            }
           };
 
-          context.Appointments.AddRange(appointments);
+          context.FreeTimes.AddRange(freeTimes);
 
           context.SaveChanges();
         }

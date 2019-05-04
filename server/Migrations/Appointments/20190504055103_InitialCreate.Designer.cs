@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using server.Models;
 
-namespace server.Migrations
+namespace server.Migrations.Appointments
 {
     [DbContext(typeof(AppointmentsContext))]
-    [Migration("20190502174323_InfoCascade")]
-    partial class InfoCascade
+    [Migration("20190504055103_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -27,17 +27,17 @@ namespace server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Date");
-
                     b.Property<long?>("DoctorId");
+
+                    b.Property<DateTime>("End");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate();
 
-                    b.Property<string>("Status");
+                    b.Property<DateTime>("Start");
 
-                    b.Property<string>("Time");
+                    b.Property<string>("Status");
 
                     b.HasKey("Id");
 
@@ -59,45 +59,42 @@ namespace server.Migrations
                     b.ToTable("Doctors");
                 });
 
-            modelBuilder.Entity("server.Models.DoctorProcedure", b =>
+            modelBuilder.Entity("server.Models.FreeTime", b =>
                 {
-                    b.Property<long>("DoctorId");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<long>("ProcedureId");
+                    b.Property<long?>("DoctorId");
 
-                    b.HasKey("DoctorId", "ProcedureId");
+                    b.Property<DateTime>("End");
 
-                    b.HasIndex("ProcedureId");
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate();
 
-                    b.ToTable("DoctorProcedures");
+                    b.Property<DateTime>("Start");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorId");
+
+                    b.ToTable("FreeTimes");
                 });
 
             modelBuilder.Entity("server.Models.Information", b =>
                 {
                     b.Property<long>("Id");
 
+                    b.Property<string>("AdditionalInfo");
+
                     b.Property<string>("PatientName");
 
-                    b.Property<long?>("ProcedureId");
+                    b.Property<string>("PatientPhone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProcedureId");
 
                     b.ToTable("Information");
-                });
-
-            modelBuilder.Entity("server.Models.Procedure", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Name");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Procedures");
                 });
 
             modelBuilder.Entity("server.Models.Appointment", b =>
@@ -107,17 +104,11 @@ namespace server.Migrations
                         .HasForeignKey("DoctorId");
                 });
 
-            modelBuilder.Entity("server.Models.DoctorProcedure", b =>
+            modelBuilder.Entity("server.Models.FreeTime", b =>
                 {
                     b.HasOne("server.Models.Doctor", "Doctor")
-                        .WithMany("DoctorProcedures")
-                        .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("server.Models.Procedure", "Procedure")
-                        .WithMany("DoctorProcedures")
-                        .HasForeignKey("ProcedureId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .WithMany()
+                        .HasForeignKey("DoctorId");
                 });
 
             modelBuilder.Entity("server.Models.Information", b =>
@@ -126,10 +117,6 @@ namespace server.Migrations
                         .WithOne("Info")
                         .HasForeignKey("server.Models.Information", "Id")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("server.Models.Procedure", "Procedure")
-                        .WithMany()
-                        .HasForeignKey("ProcedureId");
                 });
 #pragma warning restore 612, 618
         }

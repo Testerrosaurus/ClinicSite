@@ -8,44 +8,36 @@ using Newtonsoft.Json;
 
 namespace server.Models
 {
-  public class Procedure
-  {
-    [Key]
-    public long Id { get; set; }
-
-    public string Name { get; set; }
-
-    public List<DoctorProcedure> DoctorProcedures { get; set; }
-  }
-
   public class Doctor
   {
     [Key]
     public long Id { get; set; }
 
     public string Name { get; set; }
-
-    public List<DoctorProcedure> DoctorProcedures { get; set; }
   }
 
-  public class DoctorProcedure
+  public class FreeTime
   {
-    public long DoctorId { get; set; }
+    [Key]
+    public long Id { get; set; }
+
     public Doctor Doctor { get; set; }
 
-    public long ProcedureId { get; set; }
-    public Procedure Procedure { get; set; }
+    public DateTime Start { get; set; }
+    public DateTime End { get; set; }
+
+    [Timestamp]
+    public byte[] RowVersion { get; set; }
   }
-
-
 
   public class Information
   {
     [Key]
     public long Id { get; set; }
 
-    public Procedure Procedure { get; set; }
     public string PatientName { get; set; }
+    public string PatientPhone { get; set; }
+    public string AdditionalInfo { get; set; }
   }
 
 
@@ -57,8 +49,8 @@ namespace server.Models
 
     public Doctor Doctor { get; set; }
 
-    public string Date { get; set; }
-    public string Time { get; set; }
+    public DateTime Start { get; set; }
+    public DateTime End { get; set; }
 
     public string Status { get; set; }
 

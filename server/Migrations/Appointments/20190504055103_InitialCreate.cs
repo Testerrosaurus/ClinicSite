@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace server.Migrations
+namespace server.Migrations.Appointments
 {
-    public partial class InfoCascade : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -22,27 +22,14 @@ namespace server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Procedures",
-                columns: table => new
-                {
-                    Id = table.Column<long>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Procedures", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Appointments",
                 columns: table => new
                 {
                     Id = table.Column<long>(nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     DoctorId = table.Column<long>(nullable: true),
-                    Date = table.Column<string>(nullable: true),
-                    Time = table.Column<string>(nullable: true),
+                    Start = table.Column<DateTime>(nullable: false),
+                    End = table.Column<DateTime>(nullable: false),
                     Status = table.Column<string>(nullable: true),
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true)
                 },
@@ -58,27 +45,25 @@ namespace server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DoctorProcedures",
+                name: "FreeTimes",
                 columns: table => new
                 {
-                    DoctorId = table.Column<long>(nullable: false),
-                    ProcedureId = table.Column<long>(nullable: false)
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
+                    DoctorId = table.Column<long>(nullable: true),
+                    Start = table.Column<DateTime>(nullable: false),
+                    End = table.Column<DateTime>(nullable: false),
+                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DoctorProcedures", x => new { x.DoctorId, x.ProcedureId });
+                    table.PrimaryKey("PK_FreeTimes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DoctorProcedures_Doctors_DoctorId",
+                        name: "FK_FreeTimes_Doctors_DoctorId",
                         column: x => x.DoctorId,
                         principalTable: "Doctors",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DoctorProcedures_Procedures_ProcedureId",
-                        column: x => x.ProcedureId,
-                        principalTable: "Procedures",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -86,8 +71,9 @@ namespace server.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(nullable: false),
-                    ProcedureId = table.Column<long>(nullable: true),
-                    PatientName = table.Column<string>(nullable: true)
+                    PatientName = table.Column<string>(nullable: true),
+                    PatientPhone = table.Column<string>(nullable: true),
+                    AdditionalInfo = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -98,12 +84,6 @@ namespace server.Migrations
                         principalTable: "Appointments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Information_Procedures_ProcedureId",
-                        column: x => x.ProcedureId,
-                        principalTable: "Procedures",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -112,29 +92,21 @@ namespace server.Migrations
                 column: "DoctorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DoctorProcedures_ProcedureId",
-                table: "DoctorProcedures",
-                column: "ProcedureId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Information_ProcedureId",
-                table: "Information",
-                column: "ProcedureId");
+                name: "IX_FreeTimes_DoctorId",
+                table: "FreeTimes",
+                column: "DoctorId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "DoctorProcedures");
+                name: "FreeTimes");
 
             migrationBuilder.DropTable(
                 name: "Information");
 
             migrationBuilder.DropTable(
                 name: "Appointments");
-
-            migrationBuilder.DropTable(
-                name: "Procedures");
 
             migrationBuilder.DropTable(
                 name: "Doctors");

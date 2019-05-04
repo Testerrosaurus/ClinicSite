@@ -8,9 +8,8 @@ namespace server.Models
 {
   public class AppointmentsContext : DbContext
   {
-    public DbSet<Procedure> Procedures { get; set; }
     public DbSet<Doctor> Doctors { get; set; }
-    public DbSet<DoctorProcedure> DoctorProcedures { get; set; }
+    public DbSet<FreeTime> FreeTimes { get; set; }
 
     public DbSet<Appointment> Appointments { get; set; }
 
@@ -20,17 +19,6 @@ namespace server.Models
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-      modelBuilder.Entity<DoctorProcedure>()
-        .HasKey(dp => new { dp.DoctorId, dp.ProcedureId });
-
-      modelBuilder.Entity<DoctorProcedure>()
-        .HasOne(dp => dp.Doctor)
-        .WithMany(d => d.DoctorProcedures);
-
-      modelBuilder.Entity<DoctorProcedure>()
-        .HasOne(dp => dp.Procedure)
-        .WithMany(p => p.DoctorProcedures);
-
       modelBuilder.Entity<Appointment>()
        .HasOne(a => a.Info)
        .WithOne()

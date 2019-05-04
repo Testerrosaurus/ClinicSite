@@ -134,8 +134,8 @@ export default {
   },
 
   
-  getFilteredDb() {
-    return jsonResponsePromise(apiUrl + '/appointments/getFilteredDb')
+  getAvailableDateTimes() {
+    return jsonResponsePromise(apiUrl + '/appointments/getAvailableDateTimes')
   },
 
   setAppointment(info) {
