@@ -1,27 +1,31 @@
 <template>
-  <div>
-    Doctor:
-    <select :value="currentDoctorName" @change="doctorChanged($event)">
-      <option v-for="doctor in [{name:''}].concat(doctors)" :key="doctor.name" :value="doctor.name">
-        {{doctor.name}}
-      </option>
-    </select>
+  <div class="blue-form">
+    <b-container>
+      <b-row class="my-1">
+        <b-col cols="3">
+          <label for="doctor">Doctor:</label>
+        </b-col>
+        <b-col cols="9">
+          <b-form-select id="doctor" :value="currentDoctorName" @change="doctorChanged($event)">
+            <option value="">
+              All
+            </option>
+            <option v-for="doctor in doctors" :key="doctor.name" :value="doctor.name">
+              {{doctor.name}}
+            </option>
+          </b-form-select>
+        </b-col>
+      </b-row>
+    </b-container>
 
-    <table>
-      <tr>
-        <td>Date</td>
-        <td>Time</td>
-        <td>Status</td>
-        <td></td>
-      </tr>
-      <tr v-for="a in filteredAppointments" :key="a.id">
-        <td>{{a.date}}</td>
-        <td>{{a.time}}</td>
-        <td>{{a.status}}</td>
-        <td><Button @click="confirmHandler(a)">Confirm</Button></td>
-        <td><Button @click="removeHandler(a)">Remove</Button></td>
-      </tr>
-    </table>
+    <b-table :items="filteredAppointments" :fields="fields" sort-by="date">
+      <template slot="actions" slot-scope="row">
+        <b-button size="sm" @click="editHandler(row.item)" class="mr-2">Edit</b-button>
+        <b-button size="sm" @click="confirmHandler(row.item)" class="mr-2"
+          :disabled="row.item.status !== 'Unconfirmed'">Confirm</b-button>
+        <b-button size="sm" @click="removeHandler(row.item)">Remove</b-button>
+      </template>
+    </b-table>
   </div>
 </template>
 
@@ -35,13 +39,24 @@ export default {
     return {
       appointments: [],
       doctors: [],
-      currentDoctorName: ''
+      currentDoctorName: '',
+
+      fields: [
+          { key: 'doctor', label: 'Doctor' },
+          { key: 'date', label: 'Date', sortable: true, sortDirection: 'desc' },
+          { key: 'time', label: 'Time' },
+          { key: 'duration', label: 'Duration' },
+          { key: 'status', label: 'Status' },
+          { key: 'actions', label: 'Actions' }
+        ],
     }
   },
 
   computed: {
     filteredAppointments() {
-      return this.appointments.filter(a => a.doctor.name === this.currentDoctorName)
+      if (this.currentDoctorName === '') return this.appointments
+
+      return this.appointments.filter(a => a.doctor === this.currentDoctorName)
     }
   },
   
@@ -56,13 +71,20 @@ export default {
 
   methods: {
     doctorChanged(event) {
-      this.currentDoctorName = event.target.value
+      this.currentDoctorName = event
+    },
+
+    editHandler(appointment) {
+      this.$router.push({name: "EditPage", params: {id: String(appointment.id)}})
     },
 
     confirmHandler(appointment) {
       let info = {
         id: appointment.id,
-        rowVersion: appointment.rowVersion
+        rowVersion: appointment.rowVersion,
+        date: appointment.date,
+        time: appointment.time,
+        duration: appointment.duration
       }
 
       api.confirmAppointment(info)

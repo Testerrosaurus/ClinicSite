@@ -1,5 +1,5 @@
 <template>
-  <div id="appointment-registrator">
+  <div class="blue-form">
     <br />
     <b-container>
       <b-row class="my-1">

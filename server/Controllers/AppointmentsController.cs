@@ -34,9 +34,18 @@ namespace server.Controllers
 
     [Authorize]
     [HttpGet]
-    public ActionResult<List<Appointment>> GetDb()
+    public IActionResult GetDb()
     {
-      var appointments = _dbContext.Appointments.Include(a => a.Doctor).Include(a => a.Info).ToList();
+      var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).Select(a => new {
+        Id = a.Id,
+        RowVersion = a.RowVersion,
+        Status = a.Status,
+        Doctor = a.Doctor.Name,
+        Date = a.Start.Year + "-" + a.Start.Month.ToString("00") + "-" + a.Start.Day.ToString("00"),
+        Time = a.Start.Hour.ToString("00") + ":" + a.Start.Minute.ToString("00"),
+        Duration = (a.End - a.Start).TotalMinutes
+      });
+
       var doctors = _dbContext.Doctors.Select(p => new { p.Name }).ToList();
 
       return Ok(new { Appointments = appointments, Doctors = doctors });

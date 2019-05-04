@@ -25,6 +25,14 @@ export default new Router({
       }
     },
     {
+      path: '/EditPage/:id',
+      name: 'EditPage',
+      component: () => import('./components/EditPage.vue'),
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
       path: '/AppointmentPage',
       name: 'AppointmentPage',
       component: () => import('./views/AppointmentPage.vue')
