@@ -33,7 +33,7 @@
 import api from '../api/api.js'
 
 export default {
-  name: 'DbManager',
+  name: 'ManageAppointments',
 
   data() {
     return {

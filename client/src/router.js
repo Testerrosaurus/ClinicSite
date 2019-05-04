@@ -14,12 +14,9 @@ export default new Router({
       component: Home
     },
     {
-      path: '/DbManagerPage',
-      name: 'DbManagerPage',
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/DbManagerPage.vue'),
+      path: '/ManageAppointments',
+      name: 'ManageAppointments',
+      component: () => import('./components/ManageAppointments.vue'),
       meta: {
         requiresAuth: true
       }
@@ -33,9 +30,9 @@ export default new Router({
       }
     },
     {
-      path: '/AppointmentPage',
-      name: 'AppointmentPage',
-      component: () => import('./views/AppointmentPage.vue')
+      path: '/SetAppointment',
+      name: 'SetAppointment',
+      component: () => import('./components/SetAppointment.vue')
     },
     {
       path: '/AppointmentRegistered',

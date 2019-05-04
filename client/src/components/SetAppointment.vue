@@ -68,7 +68,7 @@
 import api from '../api/api.js'
 
 export default {
-  name: 'AppointmentRegistrator',
+  name: 'SetAppointment',
 
   data() {
     return {

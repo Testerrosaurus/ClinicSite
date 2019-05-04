@@ -8,8 +8,8 @@
     
     <div id="nav">
       <router-link to="/">Home</router-link>|
-      <router-link to="/DbManagerPage">Manage appointments</router-link> |
-      <router-link to="/AppointmentPage">Set appointment</router-link>
+      <router-link to="/ManageAppointments">Manage appointments</router-link> |
+      <router-link to="/SetAppointment">Set appointment</router-link>
     </div>
 
     <router-view/>
