@@ -50,7 +50,7 @@
               Select
             </option>
             <option v-for="timeObj in timeObjectsList" :key="timeObj.time" :value="timeObj.time">
-              {{timeObj.label}}
+              {{timeObj.time}}
             </option>
           </b-form-select>
         </b-col>

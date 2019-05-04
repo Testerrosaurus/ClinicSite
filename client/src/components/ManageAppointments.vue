@@ -66,17 +66,16 @@ export default {
         selected: 'all',
         options: [
           { text: 'All', value: 'all' },
-          { text: 'Only Unconfirmed', value: 'unconfirmed' },
-          { text: 'Only Confirmed', value: 'confirmed' }
+          { text: 'Confirmed', value: 'Confirmed' },
+          { text: 'Unconfirmed', value: 'Unconfirmed' }
         ]
     }
   },
 
   computed: {
     filteredAppointments() {
-      if (this.currentDoctorName === '') return this.appointments
-
-      return this.appointments.filter(a => a.doctor === this.currentDoctorName)
+      return this.appointments.filter(a => (this.currentDoctorName === '' || this.currentDoctorName === a.doctor) &&
+        (this.selected === 'all' || this.selected === a.status))
     }
   },
   
