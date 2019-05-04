@@ -25,9 +25,6 @@ namespace server.Models
 
     public DateTime Start { get; set; }
     public DateTime End { get; set; }
-
-    [Timestamp]
-    public byte[] RowVersion { get; set; }
   }
 
   public class Information
@@ -52,9 +49,12 @@ namespace server.Models
     public DateTime Start { get; set; }
     public DateTime End { get; set; }
 
-    public string Status { get; set; }
-
     public Information Info { get; set; }
+
+    public string Status { get; set; }
+    public DateTime Created { get; set; }
+
+    public string CalendarId { get; set; }
 
 
     [Timestamp]

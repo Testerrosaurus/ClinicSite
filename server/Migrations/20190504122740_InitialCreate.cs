@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace server.Migrations.Appointments
+namespace server.Migrations
 {
     public partial class InitialCreate : Migration
     {
@@ -31,6 +31,8 @@ namespace server.Migrations.Appointments
                     Start = table.Column<DateTime>(nullable: false),
                     End = table.Column<DateTime>(nullable: false),
                     Status = table.Column<string>(nullable: true),
+                    Created = table.Column<DateTime>(nullable: false),
+                    CalendarId = table.Column<string>(nullable: true),
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true)
                 },
                 constraints: table =>
@@ -52,8 +54,7 @@ namespace server.Migrations.Appointments
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     DoctorId = table.Column<long>(nullable: true),
                     Start = table.Column<DateTime>(nullable: false),
-                    End = table.Column<DateTime>(nullable: false),
-                    RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true)
+                    End = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {

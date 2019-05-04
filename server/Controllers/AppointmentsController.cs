@@ -32,18 +32,30 @@ namespace server.Controllers
       _dbContext = context;
     }
 
+    private string StringDate(DateTime dt)
+    {
+      return dt.Year + "-" + dt.Month.ToString("00") + "-" + dt.Day.ToString("00");
+    }
+
+    private string StringTime(DateTime dt)
+    {
+      return dt.Hour.ToString("00") + ":" + dt.Minute.ToString("00");
+    }
+
     [Authorize]
     [HttpGet]
-    public IActionResult GetDb()
+    public IActionResult GetAppointments()
     {
       var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).Select(a => new {
         Id = a.Id,
         RowVersion = a.RowVersion,
         Status = a.Status,
         Doctor = a.Doctor.Name,
-        Date = a.Start.Year + "-" + a.Start.Month.ToString("00") + "-" + a.Start.Day.ToString("00"),
-        Time = a.Start.Hour.ToString("00") + ":" + a.Start.Minute.ToString("00"),
-        Duration = (a.End - a.Start).TotalMinutes
+        Start = StringDate(a.Start) + " " + StringTime(a.Start),
+        Date = StringDate(a.Start),
+        Time = StringTime(a.Start),
+        Duration = (a.End - a.Start).TotalMinutes,
+        Created = StringDate(a.Created) + " " + StringTime(a.Created)
       });
 
       var doctors = _dbContext.Doctors.Select(p => new { p.Name }).ToList();
@@ -63,17 +75,19 @@ namespace server.Controllers
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult ConfirmAppointment([FromBody]AInfo info)
+    public async Task<IActionResult> ConfirmAppointment([FromBody]AInfo info)
     {
       try
       {
-        var appointment = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).SingleOrDefault(a => a.Id == info.id);
+        var appointment = await _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).SingleOrDefaultAsync(a => a.Id == info.id);
 
         if (appointment == null)
           return Ok("Fail");
 
-        if (appointment.Status != "Unconfirmed")
-          return Ok("Invalid status");
+        bool update = false;
+        if (appointment.Status == "Confirmed")
+          //return Ok("Invalid status");
+          update = true;
 
 
         appointment.RowVersion = info.rowVersion;
@@ -109,8 +123,21 @@ namespace server.Controllers
           }
         };
 
-        EventsResource.InsertRequest request = _calendar.Service.Events.Insert(newEvent, _calendar.CalendarId);
-        Event createdEvent = request.Execute();
+        if (update)
+        {
+          var calendarId = appointment.CalendarId;
+          var request = _calendar.Service.Events.Update(newEvent, _calendar.CalendarId, calendarId);
+          Event createdEvent = request.Execute();
+        }
+        else
+        {
+          var request = _calendar.Service.Events.Insert(newEvent, _calendar.CalendarId);
+          Event createdEvent = await request.ExecuteAsync();
+
+          appointment.CalendarId = createdEvent.Id;
+          _dbContext.Appointments.Update(appointment);
+          _dbContext.SaveChanges();
+        }
       }
       catch (DbUpdateConcurrencyException)
       {
@@ -123,15 +150,26 @@ namespace server.Controllers
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public ActionResult<string> RemoveAppointment([FromBody]AInfo info)
+    public async Task<IActionResult> RemoveAppointment([FromBody]AInfo info)
     {
-      Response.ContentType = "application/json";
-
       try
       {
-        var appointment = new Appointment { Id = info.id, RowVersion = info.rowVersion };
+        var appointment = await _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).SingleOrDefaultAsync(a => a.Id == info.id);
+
+        if (appointment == null)
+          return Ok("Fail");
+
+        appointment.RowVersion = info.rowVersion;
+
         _dbContext.Appointments.Remove(appointment);
         _dbContext.SaveChanges();
+
+        if (appointment.Status == "Confirmed")
+        {
+          var calendarId = appointment.CalendarId;
+          var request = _calendar.Service.Events.Delete(_calendar.CalendarId, calendarId);
+          await request.ExecuteAsync();
+        }
       }
       catch (DbUpdateConcurrencyException)
       {
@@ -141,14 +179,15 @@ namespace server.Controllers
       return Ok("Removed");
     }
 
-    private (bool, DateTime) IsAvailable(DateTime dt, List<Appointment> appointments)
+    private (bool, DateTime) IsAvailable(DateTime dt, List<Appointment> appointments, long doctorId)
     {
       var start = dt;
       var end = dt.AddMinutes(30);
 
       foreach (var a in appointments)
       {
-        if (!(a.End < start.AddSeconds(1) || a.Start > end.AddSeconds(-1))) return (false, a.End);
+        if (doctorId == a.Doctor.Id && a.End > start.AddSeconds(1) && a.Start < end.AddSeconds(-1))
+          return (false, a.End);
       }
 
       return (true, new DateTime());
@@ -174,15 +213,16 @@ namespace server.Controllers
         var dt = ft.Start;
         while (dt.AddMinutes(30) < ft.End.AddSeconds(1))
         {
-          var check = IsAvailable(dt, appointments);
+          var check = IsAvailable(dt, appointments, ft.Doctor.Id);
           if (!check.Item1)
           {
             //dt = dt.AddMinutes(30);
-            dt = check.Item2;
+
+            dt = (check.Item2.Minute % 30 == 0) ? check.Item2 : check.Item2.AddMinutes(30 - check.Item2.Minute % 30);
             continue;
           }
 
-          dateTimes.Add(new { Date = dt.Year + "-" + dt.Month.ToString("00") + "-" + dt.Day.ToString("00"), Time = dt.Hour.ToString("00") + ":" + dt.Minute.ToString("00") });
+          dateTimes.Add(new { Date = StringDate(dt), Time = StringTime(dt), EndTime = StringTime(dt.AddMinutes(30)) });
           dt = dt.AddMinutes(30);
 
           if (++count > 24 * 60 / 30) break;
@@ -218,7 +258,8 @@ namespace server.Controllers
           Start = start,
           End = start.AddMinutes(30),
           Info = new Information { PatientName = info.patient },
-          Status = "Unconfirmed"
+          Status = "Unconfirmed",
+          Created = DateTime.UtcNow.AddHours(3)
         };
 
         _dbContext.Appointments.Attach(appointment);

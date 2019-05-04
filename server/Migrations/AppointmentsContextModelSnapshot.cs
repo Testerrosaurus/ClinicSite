@@ -3,17 +3,15 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using server.Models;
 
-namespace server.Migrations.Appointments
+namespace server.Migrations
 {
     [DbContext(typeof(AppointmentsContext))]
-    [Migration("20190504055103_InitialCreate")]
-    partial class InitialCreate
+    partial class AppointmentsContextModelSnapshot : ModelSnapshot
     {
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -26,6 +24,10 @@ namespace server.Migrations.Appointments
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("CalendarId");
+
+                    b.Property<DateTime>("Created");
 
                     b.Property<long?>("DoctorId");
 
@@ -68,10 +70,6 @@ namespace server.Migrations.Appointments
                     b.Property<long?>("DoctorId");
 
                     b.Property<DateTime>("End");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate();
 
                     b.Property<DateTime>("Start");
 

@@ -49,8 +49,8 @@
             <option value="" disabled="true">
               Select
             </option>
-            <option v-for="time in timesList" :key="time" :value="time">
-              {{time}}
+            <option v-for="timeObj in timeObjectsList" :key="timeObj.time" :value="timeObj.time">
+              {{timeObj.label}}
             </option>
           </b-form-select>
         </b-col>
@@ -93,10 +93,15 @@ export default {
       return [...new Set(this.dateTimes[this.doctorName].map(dt => dt.date))]
     },
 
-    timesList() {
+    timeObjectsList() {
       if (this.doctorName === '') return []
 
-      return this.dateTimes[this.doctorName].filter(dt => dt.date === this.date).map(dt => dt.time)
+      return this.dateTimes[this.doctorName].filter(dt => dt.date === this.date).map(dt => {
+        return {
+          time: dt.time,
+          label: dt.time + ' - ' + dt.endTime
+        }
+      })
     }
   },
 

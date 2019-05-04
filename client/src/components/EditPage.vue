@@ -60,7 +60,7 @@ export default {
   },
   
   created(){
-    api.getDb()
+    api.getAppointments()
     .then(db => {
       this.appointments = db.appointments
       this.doctors = db.doctors
@@ -82,7 +82,20 @@ export default {
       api.confirmAppointment(info)
       .then(response => {
         if (response === 'Confirmed') {
-          alert('Confirmed')
+          api.getAppointments()
+          .then(db => {
+            this.appointments = db.appointments
+            this.doctors = db.doctors
+            console.log(db)
+            this.appointment = JSON.parse(JSON.stringify(db.appointments.find(a => a.id === Number(this.$route.params.id))))
+
+            if (this.appointment.status === "Unconfirmed") {
+              this.appointment.status = "Confirmed"
+              alert('Confirmed')
+            } else {
+              alert('Saved')
+            }
+          })
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
         } else if (response === 'Invalid status') {

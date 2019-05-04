@@ -125,12 +125,12 @@ export default {
     return jsonResponsePromise(apiUrl + '/appointments/removeAppointment', options)
   },
 
-  getDb() {
+  getAppointments() {
     let options = {
       credentials: 'include'
     }
 
-    return jsonResponsePromise(apiUrl + '/appointments/getDb', options)
+    return jsonResponsePromise(apiUrl + '/appointments/getAppointments', options)
   },
 
   

@@ -1,6 +1,19 @@
 <template>
   <div class="blue-form">
+    <br />
     <b-container>
+      <b-row class="my-1">
+        <b-col cols="3">
+          <label for="radios">Status:</label>
+        </b-col>
+        <b-col cols="9">
+          <b-form-radio-group id="radios"
+            v-model="selected"
+            :options="options"
+            name="radio-inline">
+          </b-form-radio-group>
+        </b-col>
+      </b-row>
       <b-row class="my-1">
         <b-col cols="3">
           <label for="doctor">Doctor:</label>
@@ -18,7 +31,7 @@
       </b-row>
     </b-container>
 
-    <b-table :items="filteredAppointments" :fields="fields" sort-by="date">
+    <b-table :items="filteredAppointments" :fields="fields" sort-by="start">
       <template slot="actions" slot-scope="row">
         <b-button size="sm" @click="editHandler(row.item)" class="mr-2">Edit</b-button>
         <b-button size="sm" @click="confirmHandler(row.item)" class="mr-2"
@@ -43,12 +56,19 @@ export default {
 
       fields: [
           { key: 'doctor', label: 'Doctor' },
-          { key: 'date', label: 'Date', sortable: true, sortDirection: 'desc' },
-          { key: 'time', label: 'Time' },
+          { key: 'start', label: 'Start', sortable: true, sortDirection: 'desc' },
           { key: 'duration', label: 'Duration' },
           { key: 'status', label: 'Status' },
+          { key: 'created', label: 'Created', sortable: true, sortDirection: 'desc'},
           { key: 'actions', label: 'Actions' }
         ],
+
+        selected: 'all',
+        options: [
+          { text: 'All', value: 'all' },
+          { text: 'Only Unconfirmed', value: 'unconfirmed' },
+          { text: 'Only Confirmed', value: 'confirmed' }
+        ]
     }
   },
 
@@ -61,7 +81,7 @@ export default {
   },
   
   created(){
-    api.getDb()
+    api.getAppointments()
     .then(db => {
       this.appointments = db.appointments
       this.doctors = db.doctors

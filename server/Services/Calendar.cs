@@ -53,7 +53,7 @@ namespace server.Services
       {
         var context = scope.ServiceProvider.GetService<AppointmentsContext>();
 
-        //if (!context.Appointments.Any())
+        if (!context.FreeTimes.Any())
         {
           context.Doctors.RemoveRange(context.Doctors.ToList());
           context.FreeTimes.RemoveRange(context.FreeTimes.ToList());

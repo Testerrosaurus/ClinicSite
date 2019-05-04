@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using server.Models;
 
-namespace server.Migrations
+namespace server.Migrations.Identity
 {
     [DbContext(typeof(IdentityContext))]
-    [Migration("20190504055046_InitialCreate")]
+    [Migration("20190504121415_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
