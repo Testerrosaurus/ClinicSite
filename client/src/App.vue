@@ -9,7 +9,8 @@
     <div id="nav">
       <router-link to="/">Home</router-link>|
       <router-link to="/ManageAppointments">Manage appointments</router-link> |
-      <router-link to="/SetAppointment">Set appointment</router-link>
+      <router-link to="/SetAppointment">Set appointment</router-link> |
+      <router-link to="/CalendarPage">Calendar</router-link>
     </div>
 
     <router-view/>

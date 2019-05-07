@@ -30,6 +30,14 @@ export default new Router({
       }
     },
     {
+      path: '/CalendarPage',
+      name: 'CalendarPage',
+      component: () => import('./components/CalendarPage.vue'),
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
       path: '/SetAppointment',
       name: 'SetAppointment',
       component: () => import('./components/SetAppointment.vue')

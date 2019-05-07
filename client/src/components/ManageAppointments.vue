@@ -63,12 +63,12 @@ export default {
           { key: 'actions', label: 'Actions' }
         ],
 
-        selected: 'all',
-        options: [
-          { text: 'All', value: 'all' },
-          { text: 'Confirmed', value: 'Confirmed' },
-          { text: 'Unconfirmed', value: 'Unconfirmed' }
-        ]
+      selected: 'all',
+      options: [
+        { text: 'All', value: 'all' },
+        { text: 'Confirmed', value: 'Confirmed' },
+        { text: 'Unconfirmed', value: 'Unconfirmed' }
+      ]
     }
   },
 

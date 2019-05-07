@@ -47,7 +47,6 @@ export default {
       doctors: [],
       currentDoctorName: '',
 
-      appointment: {},
       appointment: {}
     }
   },
