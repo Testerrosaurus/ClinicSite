@@ -4,10 +4,18 @@
     <b-container>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="patient">Patient Name:</label>
+          <label for="patient">Name:</label>
         </b-col>
         <b-col cols="9">
-          <b-form-input id="patient" v-model="patientName"></b-form-input>
+          <b-form-input id="patient" v-model="patientName" type="text"></b-form-input>
+        </b-col>
+      </b-row>
+      <b-row class="my-1">
+        <b-col cols="3">
+          <label for="phone">Phone:</label>
+        </b-col>
+        <b-col cols="9">
+          <b-form-input id="phone" v-model="patientPhone" type="tel"></b-form-input>
         </b-col>
       </b-row>
       <b-row class="my-1">
@@ -60,6 +68,9 @@
           <b-button variant="success" @click="btn1ClickHandler">Register</b-button>
         </b-col>
       </b-row>
+      <b-modal id="modal" size= "sm" centered title="Title text" no-close-on-backdrop no-close-on-esc ok-only>
+        <p class="my-4">Обработка информации Обработка информации Обработка информации Обработка информации Обработка информации Обработка информации Обработка информации</p>
+      </b-modal>
     </b-container>
   </div>
 </template>
@@ -73,6 +84,7 @@ export default {
   data() {
     return {
       patientName: '',
+      patientPhone: '',
 
       doctorName: '',
       date: '',
@@ -105,12 +117,16 @@ export default {
     }
   },
 
-  created(){
+  created() {
     api.getAvailableDateTimes()
     .then(dateTimes => {
       this.dateTimes = dateTimes
       console.log(dateTimes)
     })
+  },
+
+  mounted() {
+    this.$bvModal.show('modal')
   },
 
   methods: {
@@ -132,19 +148,20 @@ export default {
     btn1ClickHandler() {
       let info = {
         patient: this.patientName,
+        phone: this.patientPhone,
         doctor: this.doctorName,
         date: this.date,
         time: this.time
       }
 
-      api.setAppointment(info).then(answer => {
-        if (answer === 'Created') {
+      api.setAppointment(info).then(response => {
+        if (response === 'Created') {
           this.$router.push('/AppointmentRegistered')
         }
-        else if (answer === 'Invalid info') {
+        else if (response === 'Invalid info') {
           alert('Invalid information')
         }
-        else if (answer === 'Info changed') {
+        else if (response === 'Info changed') {
           api.getDb()
           .then(db => {
             this.doctors = db

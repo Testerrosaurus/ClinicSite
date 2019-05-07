@@ -4,12 +4,12 @@
     <b-container>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="doctor">Doctor:</label>
+          <label for="doctor">Врач:</label>
         </b-col>
         <b-col cols="9">
           <b-form-select id="doctor" :value="currentDoctorName" @change="doctorChanged($event)">
             <option value="">
-              All
+              Все
             </option>
             <option v-for="doctor in doctors" :key="doctor.name" :value="doctor.name">
               {{doctor.name}}
@@ -19,15 +19,15 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="12">
-          <b-button size="sm" @click="addHandler" class="mr-2">Add new</b-button>
+          <b-button size="sm" @click="addHandler" class="mr-2">Добавить новое</b-button>
         </b-col>
       </b-row>
     </b-container>
 
     <b-table :items="filteredFreeTimes" :fields="fields" sort-by="date">
       <template slot="actions" slot-scope="row">
-        <b-button size="sm" @click="editHandler(row.item)" class="mr-2">Edit</b-button>
-        <b-button size="sm" @click="removeHandler(row.item)">Remove</b-button>
+        <b-button size="sm" @click="editHandler(row.item)" class="mr-2">Изменить</b-button>
+        <b-button size="sm" @click="removeHandler(row.item)">Удалить</b-button>
       </template>
     </b-table>
   </div>

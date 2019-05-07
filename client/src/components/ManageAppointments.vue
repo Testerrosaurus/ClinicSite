@@ -56,6 +56,7 @@ export default {
 
       fields: [
           { key: 'doctor', label: 'Doctor' },
+          { key: 'patient', label: 'Patient' },
           { key: 'start', label: 'Start', sortable: true, sortDirection: 'desc' },
           { key: 'duration', label: 'Duration' },
           { key: 'status', label: 'Status' },

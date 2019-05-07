@@ -22,7 +22,6 @@ namespace server.Controllers
   public class AppointmentsController : ControllerBase
   {
     private readonly Services.Calendar _calendar;
-
     private readonly AppointmentsContext _dbContext;
 
     public AppointmentsController(Services.Calendar calendar, AppointmentsContext context)
@@ -31,6 +30,7 @@ namespace server.Controllers
 
       _dbContext = context;
     }
+
 
     private string StringDate(DateTime dt)
     {
@@ -42,6 +42,7 @@ namespace server.Controllers
       return dt.Hour.ToString("00") + ":" + dt.Minute.ToString("00");
     }
 
+
     [Authorize]
     [HttpGet]
     public IActionResult GetDb()
@@ -51,7 +52,7 @@ namespace server.Controllers
         Date = StringDate(a.Start),
         Start = StringTime(a.Start),
         End = StringTime(a.End),
-        Patient = "Ivan Ivanovich Ivanov"
+        Patient = a.Info.PatientName
       });
 
       var freeTimes = _dbContext.FreeTimes.AsNoTracking().Include(a => a.Doctor).Select(ft => new {
@@ -66,6 +67,7 @@ namespace server.Controllers
       return Ok(new { Appointments = appointments, FreeTimes = freeTimes, Doctors = doctors });
     }
 
+
     [Authorize]
     [HttpGet]
     public IActionResult GetAppointments()
@@ -75,6 +77,9 @@ namespace server.Controllers
         RowVersion = a.RowVersion,
         Status = a.Status,
         Doctor = a.Doctor.Name,
+        Patient = a.Info.PatientName,
+        Phone = a.Info.PatientPhone,
+        Info = a.Info.AdditionalInfo,
         Start = StringDate(a.Start) + " " + StringTime(a.Start),
         Date = StringDate(a.Start),
         Time = StringTime(a.Start),
@@ -86,6 +91,7 @@ namespace server.Controllers
 
       return Ok(new { Appointments = appointments, Doctors = doctors });
     }
+
 
     [Authorize]
     [HttpGet]
@@ -105,6 +111,8 @@ namespace server.Controllers
       return Ok(new { FreeTimes = freeTimes, Doctors = doctors });
     }
 
+
+
     public struct AInfo
     {
       public long id;
@@ -112,6 +120,7 @@ namespace server.Controllers
       public string date;
       public string time;
       public int duration;
+      public string info;
     }
 
     [Authorize]
@@ -138,6 +147,7 @@ namespace server.Controllers
         var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd HH:mm", null);
         appointment.Start = start;
         appointment.End = start.AddMinutes(info.duration);
+        appointment.Info.AdditionalInfo = info.info;
 
         _dbContext.Appointments.Update(appointment);
         _dbContext.SaveChanges();
@@ -189,6 +199,7 @@ namespace server.Controllers
       return Ok("Confirmed");
     }
 
+
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -221,6 +232,8 @@ namespace server.Controllers
       return Ok("Removed");
     }
 
+
+
     public struct AInfo2
     {
       public long id;
@@ -236,6 +249,9 @@ namespace server.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddFreeTime([FromBody]AInfo2 info)
     {
+      if (info.doctor == "" || info.date == "" || info.start == "" || info.end == "")
+        return Ok("Invalid info");
+
       try
       {
         var freeTime = await _dbContext.FreeTimes.AsNoTracking().Include(a => a.Doctor).SingleOrDefaultAsync(ft => ft.Id == info.id);
@@ -276,6 +292,7 @@ namespace server.Controllers
       return Ok("Success");
     }
 
+
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -300,6 +317,7 @@ namespace server.Controllers
 
       return Ok("Removed");
     }
+
 
 
     private (bool, DateTime) IsAvailable(DateTime dt, List<Appointment> appointments, long doctorId)
@@ -357,9 +375,12 @@ namespace server.Controllers
       return Ok(allDateTimes);
     }
 
+
+
     public struct AppointmentInfo
     {
       public string patient;
+      public string phone;
       public string doctor;
       public string date;
       public string time;
@@ -369,7 +390,7 @@ namespace server.Controllers
     [ValidateAntiForgeryToken]
     public IActionResult SetAppointment([FromBody]AppointmentInfo info)
     {
-      if (info.patient == "" || info.doctor == "" || info.date == "" || info.time == "")
+      if (info.patient == "" || info.phone == "" || info.doctor == "" || info.date == "" || info.time == "")
         return Ok("Invalid info");
 
       try
@@ -380,7 +401,7 @@ namespace server.Controllers
           Doctor = _dbContext.Doctors.First(d => d.Name == info.doctor),
           Start = start,
           End = start.AddMinutes(30),
-          Info = new Information { PatientName = info.patient },
+          Info = new Information { PatientName = info.patient, PatientPhone = info.phone },
           Status = "Unconfirmed",
           Created = DateTime.UtcNow.AddHours(3)
         };

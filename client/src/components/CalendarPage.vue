@@ -1,5 +1,24 @@
 <template>
   <div class="blue-form">
+    <br />
+    <b-container>
+      <b-row class="my-1">
+        <b-col cols="3">
+          <label for="doctor">Врач:</label>
+        </b-col>
+        <b-col cols="9">
+          <b-form-select id="doctor" :value="currentDoctorName" @change="doctorChanged($event)">
+            <option value="" disabled="true">
+              Все
+            </option>
+            <option v-for="doctor in db.doctors" :key="doctor.name" :value="doctor.name">
+              {{doctor.name}}
+            </option>
+          </b-form-select>
+        </b-col>
+      </b-row>
+    </b-container>
+
     <b-table striped :items="timeRanges" :fields="fields"></b-table>
   </div>
 </template>
@@ -13,7 +32,7 @@ export default {
   data() {
     return {
       db: {},
-      currentDoctor: 'doctor1',
+      currentDoctorName: '',
 
 
       fields: [
@@ -29,7 +48,7 @@ export default {
     appointments() {
       if (!this.db.appointments) return []
 
-      let aps = this.db.appointments.filter(d => d.doctor === this.currentDoctor).map(a => {
+      let aps = this.db.appointments.filter(d => d.doctor === this.currentDoctorName).map(a => {
         return {
           date: a.date,
           start: a.start,
@@ -48,7 +67,7 @@ export default {
     freeTimes() {
       if (!this.db.freeTimes) return []
 
-      let fts = this.db.freeTimes.filter(d => d.doctor === this.currentDoctor).map(t => {
+      let fts = this.db.freeTimes.filter(d => d.doctor === this.currentDoctorName).map(t => {
         return {
           date: t.date,
           start: t.start,
@@ -77,7 +96,7 @@ export default {
               date: ft.date,
               start: s,
               end: a.start,
-              status: 'Svobodno',
+              status: 'Свободно',
               startStamp: sStamp,
               endStamp: a.startStamp
             })
@@ -92,7 +111,7 @@ export default {
             date: ft.date,
             start: s,
             end: ft.end,
-            status: 'Svobodno',
+            status: 'Свободно',
             startStamp: sStamp,
             endStamp: ft.endStamp
           })
@@ -146,9 +165,9 @@ export default {
   },
 
   methods: {
-    m1() {
-
-    }
+    doctorChanged(event) {
+      this.currentDoctorName = event
+    },
   }
 }
 </script>

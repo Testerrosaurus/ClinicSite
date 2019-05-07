@@ -2,14 +2,14 @@
   <div class="blue-form">
     <br />
     <b-container>
-      <b-row class="my-1" v-if="freeTime.id == -1">
+      <b-row class="my-1">
         <b-col cols="3">
-          <label for="doctor">Doctor:</label>
+          <label for="doctor">Врач:</label>
         </b-col>
         <b-col cols="9">
-          <b-form-select id="doctor" :value="currentDoctorName" @change="doctorChanged($event)">
+          <b-form-select id="doctor" :value="currentDoctorName" @change="doctorChanged($event)" :disabled="freeTime.id != -1">
             <option value="" disabled="true">
-              All
+              Все
             </option>
             <option v-for="doctor in doctors" :key="doctor.name" :value="doctor.name">
               {{doctor.name}}
@@ -20,7 +20,7 @@
 
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="date">Date:</label>
+          <label for="date">Дата:</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="date" v-model="freeTime.date" type="date" :disabled="currentDoctorName === ''"></b-form-input>
@@ -28,7 +28,7 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="start">Start time:</label>
+          <label for="start">Время начала:</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="start" v-model="freeTime.start" type="time" :disabled="currentDoctorName === ''"></b-form-input>
@@ -36,7 +36,7 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="end">End time:</label>
+          <label for="end">Время конца:</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="end" v-model="freeTime.end" type="time" :disabled="currentDoctorName === ''"></b-form-input>
@@ -70,8 +70,8 @@ export default {
 
   computed: {
     buttonName() {
-      if (this.freeTime.id === -1) return 'Add'
-      else return 'Save'
+      if (this.freeTime.id === -1) return 'Добавить'
+      else return 'Сохранить'
     }
   },
   
@@ -112,6 +112,8 @@ export default {
       .then(response => {
         if (response === 'Success') {
             this.$router.push('/ManageFreeTime')
+        } else if (response === 'Invalid info') {
+          alert('Invalid information')
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
         }

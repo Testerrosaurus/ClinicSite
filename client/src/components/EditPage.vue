@@ -4,6 +4,30 @@
     <b-container>
       <b-row class="my-1">
         <b-col cols="3">
+          <label for="patient">Patient:</label>
+        </b-col>
+        <b-col cols="9">
+          <b-form-input id="patient" v-model="appointment.patient" type="text" disabled></b-form-input>
+        </b-col>
+      </b-row>
+       <b-row class="my-1">
+        <b-col cols="3">
+          <label for="phone">Phone:</label>
+        </b-col>
+        <b-col cols="9">
+          <b-form-input id="phone" v-model="appointment.phone" type="text" disabled></b-form-input>
+        </b-col>
+      </b-row>
+      <b-row class="my-1">
+        <b-col cols="3">
+          <label for="doctor">Doctor:</label>
+        </b-col>
+        <b-col cols="9">
+          <b-form-input id="doctor" v-model="appointment.doctor" type="text" disabled></b-form-input>
+        </b-col>
+      </b-row>
+      <b-row class="my-1">
+        <b-col cols="3">
           <label for="date">Date:</label>
         </b-col>
         <b-col cols="9">
@@ -24,6 +48,14 @@
         </b-col>
         <b-col cols="9">
           <b-form-input id="duration" v-model="appointment.duration" type="number"></b-form-input>
+        </b-col>
+      </b-row>
+      <b-row class="my-1">
+        <b-col cols="3">
+          <label for="info">Additional info:</label>
+        </b-col>
+        <b-col cols="9">
+          <b-form-textarea id="info" v-model="appointment.info" type="text"></b-form-textarea>
         </b-col>
       </b-row>
       <b-row class="my-4">
@@ -72,7 +104,8 @@ export default {
         rowVersion: this.appointment.rowVersion,
         date: this.appointment.date,
         time: this.appointment.time,
-        duration: this.appointment.duration
+        duration: this.appointment.duration,
+        info: this.appointment.info
       }
 
       api.confirmAppointment(info)
