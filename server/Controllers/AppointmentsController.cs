@@ -44,6 +44,30 @@ namespace server.Controllers
 
     [Authorize]
     [HttpGet]
+    public IActionResult GetDb()
+    {
+      var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).Where(a => a.Status == "Confirmed").Select(a => new {
+        Doctor = a.Doctor.Name,
+        Date = StringDate(a.Start),
+        Start = StringTime(a.Start),
+        End = StringTime(a.End),
+        Patient = "Ivan Ivanovich Ivanov"
+      });
+
+      var freeTimes = _dbContext.FreeTimes.AsNoTracking().Include(a => a.Doctor).Select(ft => new {
+        Doctor = ft.Doctor.Name,
+        Date = StringDate(ft.Start),
+        Start = StringTime(ft.Start),
+        End = StringTime(ft.End)
+      });
+
+      var doctors = _dbContext.Doctors.Select(p => new { p.Name }).ToList();
+
+      return Ok(new { Appointments = appointments, FreeTimes = freeTimes, Doctors = doctors });
+    }
+
+    [Authorize]
+    [HttpGet]
     public IActionResult GetAppointments()
     {
       var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).Select(a => new {
@@ -61,6 +85,24 @@ namespace server.Controllers
       var doctors = _dbContext.Doctors.Select(p => new { p.Name }).ToList();
 
       return Ok(new { Appointments = appointments, Doctors = doctors });
+    }
+
+    [Authorize]
+    [HttpGet]
+    public IActionResult GetFreeTImes()
+    {
+      var freeTimes = _dbContext.FreeTimes.AsNoTracking().Include(a => a.Doctor).Select(ft => new {
+        Id = ft.Id,
+        RowVersion = ft.RowVersion,
+        Doctor = ft.Doctor.Name,
+        Date = StringDate(ft.Start),
+        Start = StringTime(ft.Start),
+        End = StringTime(ft.End)
+      });
+
+      var doctors = _dbContext.Doctors.Select(p => new { p.Name }).ToList();
+
+      return Ok(new { FreeTimes = freeTimes, Doctors = doctors });
     }
 
     public struct AInfo

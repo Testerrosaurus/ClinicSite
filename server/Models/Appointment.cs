@@ -25,6 +25,9 @@ namespace server.Models
 
     public DateTime Start { get; set; }
     public DateTime End { get; set; }
+
+    [Timestamp]
+    public byte[] RowVersion { get; set; }
   }
 
   public class Information

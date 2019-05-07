@@ -44,8 +44,6 @@ export default {
   data() {
     return {
       appointments: [],
-      doctors: [],
-      currentDoctorName: '',
 
       appointment: {}
     }
@@ -62,7 +60,6 @@ export default {
     api.getAppointments()
     .then(db => {
       this.appointments = db.appointments
-      this.doctors = db.doctors
       console.log(db)
       this.appointment = JSON.parse(JSON.stringify(db.appointments.find(a => a.id === Number(this.$route.params.id))))
     })

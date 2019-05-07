@@ -1,16 +1,21 @@
 <template>
   <div id="app">
-    <button v-if="loggedIn" @click="logoutHandler">Logout</button>
-    <div v-else id="nav">
+    <template v-if="loggedIn">
+      <button  @click="logoutHandler">Logout</button>
+      <div class="nav">
+        <router-link to="/ManageAppointments">Manage appointments</router-link> |
+        <router-link to="/ManageFreeTime">Manage free time</router-link> |
+        <router-link to="/CalendarPage">Calendar</router-link>
+      </div>
+    </template>
+    <div v-else class="nav">
       <router-link to="/LoginForm">Sign in</router-link> |
       <router-link to="/RegisterAccount">Register</router-link>
     </div>
-    
-    <div id="nav">
+
+    <div class="nav">
       <router-link to="/">Home</router-link>|
-      <router-link to="/ManageAppointments">Manage appointments</router-link> |
-      <router-link to="/SetAppointment">Set appointment</router-link> |
-      <router-link to="/CalendarPage">Calendar</router-link>
+      <router-link to="/SetAppointment">Set appointment</router-link>
     </div>
 
     <router-view/>

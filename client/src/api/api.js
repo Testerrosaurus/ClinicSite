@@ -22,12 +22,12 @@ function getCookie(cname) {
 
 function jsonResponsePromise(url, options) {
   if (options && options.method === 'POST') {
-    let csrfToken = getCookie("XSRF-TOKEN")
+    let xsrfToken = getCookie("XSRF-TOKEN")
 
     if (!options.headers)
       options.headers = {}
 
-    options.headers['X-CSRF-TOKEN'] = csrfToken
+    options.headers['X-CSRF-TOKEN'] = xsrfToken
   }
 
   return new Promise(resolve => {
@@ -125,12 +125,29 @@ export default {
     return jsonResponsePromise(apiUrl + '/appointments/removeAppointment', options)
   },
 
+  getDb() {
+    let options = {
+      credentials: 'include'
+    }
+
+    return jsonResponsePromise(apiUrl + '/appointments/getDb', options)
+  },
+
   getAppointments() {
     let options = {
       credentials: 'include'
     }
 
     return jsonResponsePromise(apiUrl + '/appointments/getAppointments', options)
+  },
+
+  
+  getFreeTimes() {
+    let options = {
+      credentials: 'include'
+    }
+
+    return jsonResponsePromise(apiUrl + '/appointments/getFreeTimes', options)
   },
 
   

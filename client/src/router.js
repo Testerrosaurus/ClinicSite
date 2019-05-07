@@ -22,9 +22,25 @@ export default new Router({
       }
     },
     {
+      path: '/ManageFreeTime',
+      name: 'ManageFreeTime',
+      component: () => import('./components/ManageFreeTime.vue'),
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
       path: '/EditPage/:id',
       name: 'EditPage',
       component: () => import('./components/EditPage.vue'),
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
+      path: '/FreeTimePage/:id',
+      name: 'FreeTimePage',
+      component: () => import('./components/FreeTimePage.vue'),
       meta: {
         requiresAuth: true
       }
