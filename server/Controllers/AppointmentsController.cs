@@ -221,6 +221,87 @@ namespace server.Controllers
       return Ok("Removed");
     }
 
+    public struct AInfo2
+    {
+      public long id;
+      public byte[] rowVersion;
+      public string doctor;
+      public string date;
+      public string start;
+      public string end;
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddFreeTime([FromBody]AInfo2 info)
+    {
+      try
+      {
+        var freeTime = await _dbContext.FreeTimes.AsNoTracking().Include(a => a.Doctor).SingleOrDefaultAsync(ft => ft.Id == info.id);
+
+        bool adding = false;
+        if (freeTime == null)
+        {
+          freeTime = new FreeTime {
+            Doctor = _dbContext.Doctors.SingleOrDefault(d => d.Name == info.doctor)
+          };
+
+          adding = true;
+        }
+        else
+        {
+          freeTime.RowVersion = info.rowVersion;
+        }
+
+        freeTime.Start = DateTime.ParseExact(info.date + " " + info.start, "yyyy-MM-dd HH:mm", null);
+        freeTime.End = DateTime.ParseExact(info.date + " " + info.end, "yyyy-MM-dd HH:mm", null);
+
+        if (adding)
+        {
+          _dbContext.FreeTimes.Add(freeTime);
+        }
+        else
+        {
+          _dbContext.FreeTimes.Update(freeTime);
+        }
+
+        _dbContext.SaveChanges();
+      }
+      catch (DbUpdateConcurrencyException)
+      {
+        return Ok("Fail");
+      }
+
+      return Ok("Success");
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveFreeTime([FromBody]AInfo info)
+    {
+      try
+      {
+        var freeTime = await _dbContext.FreeTimes.AsNoTracking().Include(a => a.Doctor).SingleOrDefaultAsync(ft => ft.Id == info.id);
+
+        if (freeTime == null)
+          return Ok("Fail");
+
+        freeTime.RowVersion = info.rowVersion;
+
+        _dbContext.FreeTimes.Remove(freeTime);
+        _dbContext.SaveChanges();
+      }
+      catch (DbUpdateConcurrencyException)
+      {
+        return Ok("Fail");
+      }
+
+      return Ok("Removed");
+    }
+
+
     private (bool, DateTime) IsAvailable(DateTime dt, List<Appointment> appointments, long doctorId)
     {
       var start = dt;

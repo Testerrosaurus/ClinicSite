@@ -38,7 +38,7 @@ export default new Router({
       }
     },
     {
-      path: '/FreeTimePage/:id',
+      path: '/FreeTimePage/:id?',
       name: 'FreeTimePage',
       component: () => import('./components/FreeTimePage.vue'),
       meta: {

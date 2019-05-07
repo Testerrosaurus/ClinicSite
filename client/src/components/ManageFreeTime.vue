@@ -17,6 +17,11 @@
           </b-form-select>
         </b-col>
       </b-row>
+      <b-row class="my-1">
+        <b-col cols="12">
+          <b-button size="sm" @click="addHandler" class="mr-2">Add new</b-button>
+        </b-col>
+      </b-row>
     </b-container>
 
     <b-table :items="filteredFreeTimes" :fields="fields" sort-by="date">
@@ -70,8 +75,28 @@ export default {
       this.currentDoctorName = event
     },
 
-    editHandler(appointment) {
-      this.$router.push({name: "FreeTimePage", params: {id: String(this.freeTimes.id)}})
+    addHandler(freeTime) {
+      this.$router.push("/FreeTimePage")
+    },
+
+    editHandler(freeTime) {
+      this.$router.push({name: "FreeTimePage", params: {id: String(freeTime.id)}})
+    },
+
+    removeHandler(freeTime) {
+      let info = {
+        id: freeTime.id,
+        rowVersion: freeTime.rowVersion
+      }
+
+      api.removeFreeTime(info)
+      .then(response => {
+        if (response === 'Removed') {
+          this.freeTimes.splice(this.freeTimes.findIndex(a => a.id === freeTime.id), 1)
+        } else if (response === 'Fail') {
+          alert('Fail: Item was modified since last page load')
+        }
+      })
     }
   }
 }

@@ -17,59 +17,11 @@ export default {
 
 
       fields: [
-          { key: 'date', label: 'Дата' },
-          { key: 'start', label: 'Начало' },
-          { key: 'end', label: 'Конец' },
-          { key: 'status', label: 'Статус' },
-        ],
-
-      items: [
-        { date: '2019-05-17', start: '15:00', end: '15:30', status: 'Свободно'},
-        { date: '2019-05-17', start: '15:30', end: '17:00', status: 'Иван Иванович Иванов'},
-        { date: '2019-05-17', start: '18:00', end: '19:00', status: 'Свободно'},
-        { date: '2019-05-17', start: '19:00', end: '20:00', status: 'Петр Петрович Петров'},
-        { date: '2019-05-17', start: '20:00', end: '21:00', status: 'Свободно'},
-
-        { date: '', start: '', end: '', status: '', _rowVariant: 'success'},
-
-        { date: '2019-05-18', start: '15:00', end: '18:30', status: 'Свободно'},
-        { date: '2019-05-18', start: '18:30', end: '19:00', status: 'Иван Иванович Иванов'},
-        { date: '2019-05-18', start: '19:00', end: '21:00', status: 'Свободно'},
-
-        { date: '', start: '', end: '', status: '', _rowVariant: 'success'},
-        
-        { date: '2019-05-19', start: '15:00', end: '16:00', status: 'Свободно'},
-        { date: '2019-05-19', start: '16:00', end: '16:30', status: 'Иван Иванович Иванов'},
-        { date: '2019-05-19', start: '16:30', end: '17:00', status: 'Петр Петрович Петров'},
-        { date: '2019-05-19', start: '17:00', end: '19:30', status: 'Свободно'},
-        { date: '2019-05-19', start: '19:30', end: '20:30', status: 'Иван Иванович Иванов'},
-        { date: '2019-05-19', start: '20:30', end: '21:00', status: 'Свободно'},
-
-        { date: '', start: '', end: '', status: '', _rowVariant: 'success'},
-
-        { date: '2019-05-20', start: '15:00', end: '15:30', status: 'Свободно'},
-        { date: '2019-05-20', start: '15:30', end: '17:00', status: 'Иван Иванович Иванов'},
-        { date: '2019-05-20', start: '18:00', end: '19:00', status: 'Свободно'},
-        { date: '2019-05-20', start: '19:00', end: '20:00', status: 'Петр Петрович Петров'},
-        { date: '2019-05-20', start: '20:00', end: '21:00', status: 'Свободно'},
-
-        { date: '', start: '', end: '', status: '', _rowVariant: 'success'},
-
-        { date: '2019-05-21', start: '15:00', end: '17:00', status: 'Свободно'},
-        { date: '2019-05-21', start: '17:00', end: '17:30', status: 'Петр Петрович Петров'},
-        { date: '2019-05-21', start: '17:30', end: '18:30', status: 'Свободно'},
-        { date: '2019-05-21', start: '18:30', end: '19:00', status: 'Иван Иванович Иванов'},
-        { date: '2019-05-21', start: '19:00', end: '21:00', status: 'Свободно'},
-
-        { date: '', start: '', end: '', status: '', _rowVariant: 'success'},
-        
-        { date: '2019-05-22', start: '15:00', end: '16:00', status: 'Свободно'},
-        { date: '2019-05-22', start: '16:00', end: '16:30', status: 'Иван Иванович Иванов'},
-        { date: '2019-05-22', start: '16:30', end: '17:00', status: 'Петр Петрович Петров'},
-        { date: '2019-05-22', start: '17:00', end: '19:30', status: 'Свободно'},
-        { date: '2019-05-22', start: '19:30', end: '20:30', status: 'Иван Иванович Иванов'},
-        { date: '2019-05-22', start: '20:30', end: '21:00', status: 'Свободно'},
-      ]
+        { key: 'date', label: 'Дата' },
+        { key: 'start', label: 'Начало' },
+        { key: 'end', label: 'Конец' },
+        { key: 'status', label: 'Статус' },
+      ]  
     }
   },
 
@@ -101,7 +53,6 @@ export default {
           date: t.date,
           start: t.start,
           end: t.end,
-          status: 'Svobodno',
           startStamp: Number(new Date(t.date + 'T' + t.start)),
           endStamp: Number(new Date(t.date + 'T' + t.end))
         }
@@ -152,9 +103,37 @@ export default {
     },
 
     timeRanges() {
-      return this.appointments.concat(this.freeTimes).sort((a, b) => {
+      let res =  this.appointments.concat(this.freeTimes).sort((a, b) => {
         return a.startStamp - b.startStamp
       })
+      
+      if (res.length === 0) return []
+
+
+      let daySeparators = []
+      let lastDate = res[0].date
+      res.forEach(t => {
+        if (t.date !== lastDate) {
+          daySeparators.push({
+            date: '',
+            start: '',
+            end: '',
+            status: '',
+            startStamp: Number(new Date(t.date + 'T' + '04:00')),
+            endStamp: Number(new Date(t.date + 'T' + '04:00')),
+            _rowVariant: 'success'
+          })
+
+          lastDate = t.date
+        }
+      })
+
+
+      res = res.concat(daySeparators).sort((a, b) => {
+        return a.startStamp - b.startStamp
+      })
+
+      return res
     }
   },
   

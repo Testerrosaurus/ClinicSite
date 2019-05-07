@@ -125,6 +125,34 @@ export default {
     return jsonResponsePromise(apiUrl + '/appointments/removeAppointment', options)
   },
 
+  addFreeTime(info) {
+    let options = {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(info)
+    }
+
+    return jsonResponsePromise(apiUrl + '/appointments/addFreeTime', options)
+  },
+
+  removeFreeTime(info) {
+    let options = {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(info)
+    }
+
+    return jsonResponsePromise(apiUrl + '/appointments/removeFreeTime', options)
+  },
+
   getDb() {
     let options = {
       credentials: 'include'
