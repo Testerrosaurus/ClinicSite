@@ -9,7 +9,7 @@
         <b-col cols="9">
           <b-form-select id="doctor" :value="currentDoctorName" @change="doctorChanged($event)" :disabled="freeTime.id != -1">
             <option value="" disabled="true">
-              Все
+              Выберите врача
             </option>
             <option v-for="doctor in doctors" :key="doctor.name" :value="doctor.name">
               {{doctor.name}}
@@ -45,6 +45,7 @@
       <b-row class="my-4">
         <b-col cols="12">
           <b-button variant="success" @click="addHandler">{{buttonName}}</b-button>
+          <b-button variant="success" @click="cancelHandler" class="ml-1">Отмена</b-button>
         </b-col>
       </b-row>
     </b-container>
@@ -111,13 +112,17 @@ export default {
       api.addFreeTime(info)
       .then(response => {
         if (response === 'Success') {
-            this.$router.push('/ManageFreeTime')
+          this.$router.push('/ManageFreeTime')
         } else if (response === 'Invalid info') {
-          alert('Invalid information')
+          alert('Некорректная информация')
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
         }
       })
+    },
+
+    cancelHandler() {
+      this.$router.push('/ManageFreeTime')
     }
   }
 }

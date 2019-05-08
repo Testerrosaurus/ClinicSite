@@ -4,7 +4,7 @@
     <b-container>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="patient">Name:</label>
+          <label for="patient">ФИО пациента:</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="patient" v-model="patientName" type="text"></b-form-input>
@@ -12,7 +12,7 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="phone">Phone:</label>
+          <label for="phone">Номер телефона:</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="phone" v-model="patientPhone" type="tel"></b-form-input>
@@ -20,12 +20,12 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="doctor">Doctor:</label>
+          <label for="doctor">Врач:</label>
         </b-col>
         <b-col cols="9">
           <b-form-select id="doctor" :value="doctorName" @change="doctorChanged($event)">
             <option value="" disabled="true">
-              Select
+              Выберите врача
             </option>
             <option v-for="d in doctorsNamesList" :key="d" :value="d">
               {{d}}
@@ -35,12 +35,12 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="date">Date:</label>
+          <label for="date">Дата:</label>
         </b-col>
         <b-col cols="9">
           <b-form-select id="date" :disabled="doctorName === ''" :value="date" @change="dateChanged($event)">
             <option value="" disabled="true">
-              Select
+              Выберите дату
             </option>
             <option v-for="date in datesList" :key="date" :value="date">
               {{date}}
@@ -50,12 +50,12 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="time">Time:</label>
+          <label for="time">Время:</label>
         </b-col>
         <b-col cols="9">
           <b-form-select id="time" :disabled="date === ''" :value="time" @change="timeChanged($event)">
             <option value="" disabled="true">
-              Select
+              Выберите время
             </option>
             <option v-for="timeObj in timeObjectsList" :key="timeObj.time" :value="timeObj.time">
               {{timeObj.time}}
@@ -65,7 +65,7 @@
       </b-row>
       <b-row class="my-4">
         <b-col cols="12">
-          <b-button variant="success" @click="btn1ClickHandler">Register</b-button>
+          <b-button variant="success" @click="btn1ClickHandler">Отправить</b-button>
         </b-col>
       </b-row>
       <b-modal id="modal" size= "sm" centered title="Title text" no-close-on-backdrop no-close-on-esc ok-only>
@@ -159,14 +159,7 @@ export default {
           this.$router.push('/AppointmentRegistered')
         }
         else if (response === 'Invalid info') {
-          alert('Invalid information')
-        }
-        else if (response === 'Info changed') {
-          api.getDb()
-          .then(db => {
-            this.doctors = db
-            alert('Fail: Item was modified since last page load')
-          })
+          alert('Некорректная информация')
         }
       })
     }

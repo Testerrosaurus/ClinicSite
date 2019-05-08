@@ -4,7 +4,7 @@
     <b-container>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="radios">Status:</label>
+          <label for="radios">Статус:</label>
         </b-col>
         <b-col cols="9">
           <b-form-radio-group id="radios"
@@ -16,12 +16,12 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="doctor">Doctor:</label>
+          <label for="doctor">Врач:</label>
         </b-col>
         <b-col cols="9">
           <b-form-select id="doctor" :value="currentDoctorName" @change="doctorChanged($event)">
             <option value="">
-              All
+              Все
             </option>
             <option v-for="doctor in doctors" :key="doctor.name" :value="doctor.name">
               {{doctor.name}}
@@ -31,12 +31,15 @@
       </b-row>
     </b-container>
 
-    <b-table :items="filteredAppointments" :fields="fields" sort-by="start">
+    <b-table :items="filteredAppointments" :fields="fields">
+      <template slot="status-rus" slot-scope="data">
+        {{ statusMsg(data.item.status) }}
+      </template>
       <template slot="actions" slot-scope="row">
-        <b-button size="sm" @click="editHandler(row.item)" class="mr-2">Edit</b-button>
+        <b-button size="sm" @click="editHandler(row.item)" class="mr-2">Изменить</b-button>
         <b-button size="sm" @click="confirmHandler(row.item)" class="mr-2"
-          :disabled="row.item.status !== 'Unconfirmed'">Confirm</b-button>
-        <b-button size="sm" @click="removeHandler(row.item)">Remove</b-button>
+          :disabled="row.item.status !== 'Unconfirmed'">Подтвердить</b-button>
+        <b-button size="sm" @click="removeHandler(row.item)">Удалить</b-button>
       </template>
     </b-table>
   </div>
@@ -55,20 +58,20 @@ export default {
       currentDoctorName: '',
 
       fields: [
-          { key: 'doctor', label: 'Doctor' },
-          { key: 'patient', label: 'Patient' },
-          { key: 'start', label: 'Start', sortable: true, sortDirection: 'desc' },
-          { key: 'duration', label: 'Duration' },
-          { key: 'status', label: 'Status' },
-          { key: 'created', label: 'Created', sortable: true, sortDirection: 'desc'},
-          { key: 'actions', label: 'Actions' }
+          { key: 'doctor', label: 'Врач' },
+          { key: 'patient', label: 'ФИО пациента' },
+          { key: 'start', label: 'Начало'},
+          { key: 'duration', label: 'Длительность' },
+          { key: 'status-rus', label: 'Подтверждено' },
+          //{ key: 'created', label: 'Создан'},
+          { key: 'actions', label: 'Действия' }
         ],
 
       selected: 'all',
       options: [
-        { text: 'All', value: 'all' },
-        { text: 'Confirmed', value: 'Confirmed' },
-        { text: 'Unconfirmed', value: 'Unconfirmed' }
+        { text: 'Все', value: 'all' },
+        { text: 'Подтвержденные', value: 'Confirmed' },
+        { text: 'Неподтвержденные', value: 'Unconfirmed' }
       ]
     }
   },
@@ -83,13 +86,20 @@ export default {
   created(){
     api.getAppointments()
     .then(db => {
-      this.appointments = db.appointments
+      this.appointments = db.appointments.sort((a, b) => {
+        return Number(new Date(a.date + 'T' + a.start)) - Number(new Date(b.date + 'T' + b.start))
+      })
       this.doctors = db.doctors
       console.log(db)
     })
   },
 
   methods: {
+    statusMsg(status) {
+      if (status === "Confirmed") return "Да"
+      else return "Нет"
+    },
+
     doctorChanged(event) {
       this.currentDoctorName = event
     },
@@ -109,12 +119,11 @@ export default {
 
       api.confirmAppointment(info)
       .then(response => {
-        if (response === 'Confirmed') {
+        if (response.status === 'Confirmed') {
           this.appointments.find(a => a.id === appointment.id).status = 'Confirmed'
+          this.appointments.find(a => a.id === appointment.id).rowVersion = response.newRowVersion
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
-        } else if (response === 'Invalid status') {
-          alert('Fail: Invalid status')
         }
       })
     },

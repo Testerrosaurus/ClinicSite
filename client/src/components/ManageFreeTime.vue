@@ -19,12 +19,12 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="12">
-          <b-button size="sm" @click="addHandler" class="mr-2">Добавить новое</b-button>
+          <b-button size="sm" @click="addHandler" class="mr-2">Добавить</b-button>
         </b-col>
       </b-row>
     </b-container>
 
-    <b-table :items="filteredFreeTimes" :fields="fields" sort-by="date">
+    <b-table :items="filteredFreeTimes" :fields="fields">
       <template slot="actions" slot-scope="row">
         <b-button size="sm" @click="editHandler(row.item)" class="mr-2">Изменить</b-button>
         <b-button size="sm" @click="removeHandler(row.item)">Удалить</b-button>
@@ -46,11 +46,11 @@ export default {
       currentDoctorName: '',
 
       fields: [
-          { key: 'doctor', label: 'Doctor', sortable: true, sortDirection: 'desc' },
-          { key: 'date', label: 'Date', sortable: true, sortDirection: 'desc' },
-          { key: 'start', label: 'Start', sortable: true, sortDirection: 'desc' },
-          { key: 'end', label: 'End' },
-          { key: 'actions', label: 'Actions' }
+          { key: 'doctor', label: 'Врач'},
+          { key: 'date', label: 'Дата'},
+          { key: 'start', label: 'Начало'},
+          { key: 'end', label: 'Конец' },
+          { key: 'actions', label: 'Действия' }
         ],
     }
   },
@@ -64,7 +64,9 @@ export default {
   created(){
     api.getFreeTimes()
     .then(db => {
-      this.freeTimes = db.freeTimes
+      this.freeTimes = db.freeTimes.sort((a, b) => {
+        return Number(new Date(a.date + 'T' + a.start)) - Number(new Date(b.date + 'T' + b.start))
+      })
       this.doctors = db.doctors
       console.log(db)
     })

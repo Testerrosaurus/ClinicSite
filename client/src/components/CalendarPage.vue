@@ -9,7 +9,7 @@
         <b-col cols="9">
           <b-form-select id="doctor" :value="currentDoctorName" @change="doctorChanged($event)">
             <option value="" disabled="true">
-              Все
+              Выберите врача
             </option>
             <option v-for="doctor in db.doctors" :key="doctor.name" :value="doctor.name">
               {{doctor.name}}

@@ -1,7 +1,7 @@
 <template>
   <div>
-    <h2>Appointment was successfully set</h2>
-    <router-link to="/">Ok</router-link>
+    <h2>Заявка на прием отправлена</h2>
+    <router-link to="/">Ок</router-link>
   </div>
 </template>
 

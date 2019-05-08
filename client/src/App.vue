@@ -1,21 +1,21 @@
 <template>
   <div id="app">
     <template v-if="loggedIn">
-      <button  @click="logoutHandler">Logout</button>
+      <button  @click="logoutHandler">Выйти</button>
       <div class="nav">
-        <router-link to="/ManageAppointments">Manage appointments</router-link> |
-        <router-link to="/ManageFreeTime">Manage free time</router-link> |
-        <router-link to="/CalendarPage">Calendar</router-link>
+        <router-link to="/ManageAppointments">Управление записями</router-link> |
+        <router-link to="/ManageFreeTime">Управление свободным временем</router-link> |
+        <router-link to="/CalendarPage">Календарь</router-link>
       </div>
     </template>
     <div v-else class="nav">
-      <router-link to="/LoginForm">Sign in</router-link> |
-      <router-link to="/RegisterAccount">Register</router-link>
+      <router-link to="/LoginForm">Войти</router-link> |
+      <router-link to="/RegisterAccount">Зарегистрироваться</router-link>
     </div>
 
     <div class="nav">
-      <router-link to="/">Home</router-link>|
-      <router-link to="/SetAppointment">Set appointment</router-link>
+      <router-link to="/">Домой</router-link>|
+      <router-link to="/SetAppointment">Записаться на прием</router-link>
     </div>
 
     <router-view/>

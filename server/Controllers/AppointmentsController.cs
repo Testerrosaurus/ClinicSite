@@ -136,6 +136,7 @@ namespace server.Controllers
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ConfirmAppointment([FromBody]AInfo info)
     {
+      byte[] newRowVersion = null;
       try
       {
         var appointment = await _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).SingleOrDefaultAsync(a => a.Id == info.id);
@@ -145,7 +146,6 @@ namespace server.Controllers
 
         bool update = false;
         if (appointment.Status == "Confirmed")
-          //return Ok("Invalid status");
           update = true;
 
 
@@ -160,7 +160,7 @@ namespace server.Controllers
         _dbContext.Appointments.Update(appointment);
         _dbContext.SaveChanges();
 
-
+        newRowVersion = appointment.RowVersion;
 
 
         Event newEvent = new Event()
@@ -197,14 +197,16 @@ namespace server.Controllers
           appointment.CalendarId = createdEvent.Id;
           _dbContext.Appointments.Update(appointment);
           _dbContext.SaveChanges();
+
+          newRowVersion = appointment.RowVersion;
         }
       }
       catch (DbUpdateConcurrencyException)
       {
         return Ok("Fail");
-      }      
+      }
 
-      return Ok("Confirmed");
+      return Ok(new { status = "Confirmed", newRowVersion = newRowVersion });
     }
 
 
@@ -401,30 +403,26 @@ namespace server.Controllers
       if (info.patient == "" || info.phone == "" || info.doctor == "" || info.date == "" || info.time == "")
         return Ok("Invalid info");
 
-      try
-      {
-        var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd HH:mm", null);
 
-        var appointment = new Appointment {
-          Doctor = _dbContext.Doctors.First(d => d.Name == info.doctor),
-          Start = start,
-          End = start.AddMinutes(30),
-          Info = new Information { PatientName = info.patient, PatientPhone = info.phone },
-          Status = "Unconfirmed",
-          Created = DateTime.UtcNow.AddHours(3)
-        };
 
-        _dbContext.Appointments.Attach(appointment);
-        _dbContext.SaveChanges();
+      var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd HH:mm", null);
 
-        await _botService.Client.SendTextMessageAsync(_botService.ChatId, "Не подтвержденная запись\nФИО пациента: " + info.patient + "\nНомер телефона: " + info.phone
-           + "\nВрач: " + info.doctor + "\nДата: " + info.date + "\nВремя: " + info.time
-           + "\nСвободное время: " + "15:00 - 16:00, 15:00 - 16:00, 15:00 - 16:00, 15:00 - 16:00" + "\nАдминка линк: https://" + Request.Host + "/ManageAppointments");
-      }
-      catch (DbUpdateConcurrencyException)
-      {
-        return Ok("Info changed");
-      }
+      var appointment = new Appointment {
+        Doctor = _dbContext.Doctors.First(d => d.Name == info.doctor),
+        Start = start,
+        End = start.AddMinutes(30),
+        Info = new Information { PatientName = info.patient, PatientPhone = info.phone },
+        Status = "Unconfirmed",
+        Created = DateTime.UtcNow.AddHours(3)
+      };
+
+      _dbContext.Appointments.Attach(appointment);
+      _dbContext.SaveChanges();
+
+      await _botService.Client.SendTextMessageAsync(_botService.ChatId, "Не подтвержденная запись\nФИО пациента: " + info.patient + "\nНомер телефона: " + info.phone
+          + "\nВрач: " + info.doctor + "\nДата: " + info.date + "\nВремя: " + info.time
+          + "\nСвободное время: " + "15:00 - 16:00, 15:00 - 16:00, 15:00 - 16:00, 15:00 - 16:00" + "\nАдминка линк: https://" + Request.Host + "/ManageAppointments");
+      
 
      
       return Ok("Created");

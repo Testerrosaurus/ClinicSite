@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2>Registration page</h2>
-    <button @click="registerHandler">Register</button>
+    <button @click="registerHandler">Зарегистрироваться</button>
   </div>
 </template>
 

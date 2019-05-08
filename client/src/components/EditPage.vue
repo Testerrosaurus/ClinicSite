@@ -4,7 +4,7 @@
     <b-container>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="patient">Patient:</label>
+          <label for="patient">ФИО пациента:</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="patient" v-model="appointment.patient" type="text" disabled></b-form-input>
@@ -12,7 +12,7 @@
       </b-row>
        <b-row class="my-1">
         <b-col cols="3">
-          <label for="phone">Phone:</label>
+          <label for="phone">Номер телефона:</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="phone" v-model="appointment.phone" type="text" disabled></b-form-input>
@@ -20,7 +20,7 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="doctor">Doctor:</label>
+          <label for="doctor">Врач:</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="doctor" v-model="appointment.doctor" type="text" disabled></b-form-input>
@@ -28,7 +28,7 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="date">Date:</label>
+          <label for="date">Дата:</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="date" v-model="appointment.date" type="date"></b-form-input>
@@ -36,7 +36,7 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="time">Time:</label>
+          <label for="time">Время:</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="time" v-model="appointment.time" type="time"></b-form-input>
@@ -44,7 +44,7 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="duration">Duration (in minutes):</label>
+          <label for="duration">Длительность (в минутах):</label>
         </b-col>
         <b-col cols="9">
           <b-form-input id="duration" v-model="appointment.duration" type="number"></b-form-input>
@@ -52,7 +52,7 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="info">Additional info:</label>
+          <label for="info">Дополнительная информация:</label>
         </b-col>
         <b-col cols="9">
           <b-form-textarea id="info" v-model="appointment.info" type="text"></b-form-textarea>
@@ -61,6 +61,7 @@
       <b-row class="my-4">
         <b-col cols="12">
           <b-button variant="success" @click="confirmHandler">{{buttonName}}</b-button>
+          <b-button variant="success" @click="cancelHandler" class="ml-1">Отмена</b-button>
         </b-col>
       </b-row>
     </b-container>
@@ -83,8 +84,8 @@ export default {
 
   computed: {
     buttonName() {
-      if (this.appointment.status === "Unconfirmed") return 'Confirm'
-      else return 'Save'
+      if (this.appointment.status === "Unconfirmed") return 'Подтвердить'
+      else return 'Сохранить'
     }
   },
   
@@ -114,10 +115,12 @@ export default {
             this.$router.push('/ManageAppointments')
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
-        } else if (response === 'Invalid status') {
-          alert('Fail: Invalid status')
         }
       })
+    },
+
+    cancelHandler() {
+      this.$router.push('/ManageAppointments')
     }
   }
 }
