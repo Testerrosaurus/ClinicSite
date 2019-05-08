@@ -14,6 +14,10 @@ using server.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Data.SqlClient;
+using Telegram.Bot;
+using Telegram.Bot.Args;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace server.Controllers
 {
@@ -23,12 +27,16 @@ namespace server.Controllers
   {
     private readonly Services.Calendar _calendar;
     private readonly AppointmentsContext _dbContext;
+    private readonly TelegramBotClient _client;
 
-    public AppointmentsController(Services.Calendar calendar, AppointmentsContext context)
+
+    public AppointmentsController(Services.Calendar calendar, AppointmentsContext context, Services.TelegramBotService botService)
     {
       _calendar = calendar;
 
       _dbContext = context;
+
+      _client = botService.Client;
     }
 
 

@@ -49,6 +49,7 @@ namespace server.Services
 
 
 
+
       using (var scope = service.CreateScope())
       {
         var context = scope.ServiceProvider.GetService<AppointmentsContext>();
