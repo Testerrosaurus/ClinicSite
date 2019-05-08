@@ -24,11 +24,11 @@ namespace server.Controllers
   [Route("api/[controller]")]
   public class TelegramController : ControllerBase
   {
-    private readonly TelegramBotClient _client;
+    private readonly Services.TelegramBotService _botService;
 
     public TelegramController(Services.TelegramBotService botService)
     {
-      _client = botService.Client;
+      _botService = botService;
     }
 
     // POST api/update
@@ -39,7 +39,7 @@ namespace server.Controllers
       var message = update.Message;
       if (message?.Type == MessageType.Text)
       {
-        await _client.SendTextMessageAsync(message.Chat.Id, message.Text + "  TestTAA");
+        await _botService.Client.SendTextMessageAsync(message.Chat.Id, message.Text + "  TestTAA");
       }
     }
   }

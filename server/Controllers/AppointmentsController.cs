@@ -27,7 +27,7 @@ namespace server.Controllers
   {
     private readonly Services.Calendar _calendar;
     private readonly AppointmentsContext _dbContext;
-    private readonly TelegramBotClient _client;
+    private readonly Services.TelegramBotService _botService;
 
 
     public AppointmentsController(Services.Calendar calendar, AppointmentsContext context, Services.TelegramBotService botService)
@@ -36,7 +36,7 @@ namespace server.Controllers
 
       _dbContext = context;
 
-      _client = botService.Client;
+      _botService = botService;
     }
 
 
@@ -396,7 +396,7 @@ namespace server.Controllers
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult SetAppointment([FromBody]AppointmentInfo info)
+    public async Task<IActionResult> SetAppointment([FromBody]AppointmentInfo info)
     {
       if (info.patient == "" || info.phone == "" || info.doctor == "" || info.date == "" || info.time == "")
         return Ok("Invalid info");
@@ -416,6 +416,10 @@ namespace server.Controllers
 
         _dbContext.Appointments.Attach(appointment);
         _dbContext.SaveChanges();
+
+        await _botService.Client.SendTextMessageAsync(_botService.ChatId, "Не подтвержденная запись\nФИО пациента: " + info.patient + "\nНомер телефона: " + info.phone
+           + "\nВрач: " + info.doctor + "\nДата: " + info.date + "\nВремя: " + info.time
+           + "\nСвободное время: " + "15:00 - 16:00, 15:00 - 16:00, 15:00 - 16:00, 15:00 - 16:00" + "\nАдминка линк: https://" + Request.Host + "/ManageAppointments");
       }
       catch (DbUpdateConcurrencyException)
       {
