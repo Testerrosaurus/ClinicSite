@@ -36,11 +36,43 @@
 <script>
 import api from '../api/api.js'
 
+function calcualteIntersectedAppointments(appointments, ft) {
+  let aps = appointments.filter(a => a.doctor === ft.doctor && a.date === ft.date).map(a => {
+    return {
+      date: a.date,
+      start: a.start,
+      end: a.end,
+      status: a.patient,
+      startStamp: Number(new Date(a.date + 'T' + a.start)),
+      endStamp: Number(new Date(a.date + 'T' + a.end))
+    }
+  })
+  .sort((a, b) => {
+    return a.startStamp - b.startStamp
+  })
+
+
+  let ftStartStamp = Number(new Date(ft.date + 'T' + ft.start))
+  let ftEndStamp = Number(new Date(ft.date + 'T' + ft.end))
+
+  let intersectedAppointments = []
+
+  aps.forEach(a => {
+    if (!(a.endStamp <= ftStartStamp || a.startStamp >= ftEndStamp)) {  // a and ft intersect in time
+      intersectedAppointments.push(a)
+    }
+  })
+
+  return intersectedAppointments
+}
+
+
 export default {
   name: 'ManageFreeTime',
 
   data() {
     return {
+      appointments: [],
       freeTimes: [],
       doctors: [],
       currentDoctorName: '',
@@ -62,11 +94,13 @@ export default {
   },
   
   created(){
-    api.getFreeTimes()
+    api.getDb()
     .then(db => {
       this.freeTimes = db.freeTimes.sort((a, b) => {
         return Number(new Date(a.date + 'T' + a.start)) - Number(new Date(b.date + 'T' + b.start))
       })
+
+      this.appointments = db.appointments
       this.doctors = db.doctors
       console.log(db)
     })
@@ -86,6 +120,33 @@ export default {
     },
 
     removeHandler(freeTime) {
+      let intersectedAppointments = calcualteIntersectedAppointments(this.appointments, freeTime)
+
+      if (intersectedAppointments.length > 0) {
+        this.$bvModal.msgBoxConfirm('На это свободное время уже имеются подтвержденные записи.\nПродолжить?', {
+          title: 'Подтвердите удаление',
+          size: 'sm',
+          buttonSize: 'sm',
+          okVariant: 'danger',
+          okTitle: 'Да',
+          cancelTitle: 'Нет',
+          footerClass: 'p-2',
+          hideHeaderClose: false,
+          centered: true,
+          noCloseOnBackdrop: true,
+          noCloseOnEsc: true
+        })
+        .then(value => {
+          if (value) {
+            this.sendRemove(freeTime)
+          }
+        })
+      } else {
+        this.sendRemove(freeTime)
+      }
+    },
+
+    sendRemove(freeTime) {
       let info = {
         id: freeTime.id,
         rowVersion: freeTime.rowVersion

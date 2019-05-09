@@ -56,6 +56,8 @@ namespace server.Controllers
     public IActionResult GetDb()
     {
       var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).Where(a => a.Status == "Confirmed").Select(a => new {
+        Id = a.Id,
+        RowVersion = a.RowVersion,
         Doctor = a.Doctor.Name,
         Date = StringDate(a.Start),
         Start = StringTime(a.Start),
@@ -64,6 +66,8 @@ namespace server.Controllers
       });
 
       var freeTimes = _dbContext.FreeTimes.AsNoTracking().Include(a => a.Doctor).Select(ft => new {
+        Id = ft.Id,
+        RowVersion = ft.RowVersion,
         Doctor = ft.Doctor.Name,
         Date = StringDate(ft.Start),
         Start = StringTime(ft.Start),
@@ -244,6 +248,21 @@ namespace server.Controllers
 
 
 
+    private bool AreIntersectingInTime(dynamic newEl, IEnumerable<dynamic> list)
+    {
+      int count = 0;
+
+      foreach (var el in list)
+      {
+        if (el.Id != newEl.Id && !(el.End <= newEl.Start || el.Start >= newEl.End)) // el and newEl intersect in time
+        {
+          count++;
+        }
+      }
+
+      return count != 0;
+    }
+
     public struct AInfo2
     {
       public long id;
@@ -283,6 +302,17 @@ namespace server.Controllers
         freeTime.Start = DateTime.ParseExact(info.date + " " + info.start, "yyyy-MM-dd HH:mm", null);
         freeTime.End = DateTime.ParseExact(info.date + " " + info.end, "yyyy-MM-dd HH:mm", null);
 
+
+        var freeTimes = _dbContext.FreeTimes.AsNoTracking().Include(ft => ft.Doctor)
+          .Where(ft => ft.Doctor.Name == freeTime.Doctor.Name && ft.Start.Date == freeTime.Start.Date);
+
+
+        bool intersecting = AreIntersectingInTime(freeTime, freeTimes);
+        if (intersecting)
+        {
+          return Ok("Intersection error");
+        }
+
         if (adding)
         {
           _dbContext.FreeTimes.Add(freeTime);
@@ -314,6 +344,21 @@ namespace server.Controllers
 
         if (freeTime == null)
           return Ok("Fail");
+
+
+
+        //var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor)
+        //  .Where(a => a.Status == "Confirmed" && a.Doctor.Name == freeTime.Doctor.Name && a.Start.Date == freeTime.Start.Date);
+
+        //var intersectedAppointments = new List<Appointment>();
+        //foreach (var a in appointments)
+        //{
+        //  if (!(a.End <= freeTime.Start || a.Start >= freeTime.End)) // a and freeTime intersect in time
+        //  {
+        //    intersectedAppointments.Add(a);
+        //  }
+        //}
+
 
         freeTime.RowVersion = info.rowVersion;
 
@@ -410,7 +455,7 @@ namespace server.Controllers
         {
           if (a.End <= ft.Start || a.Start >= ft.End) continue;
 
-          if (start < a.Start)
+          if (start.AddMinutes(5) < a.Start)
           {
             difference.Add(new { Start = start, End = a.Start });
           }
@@ -418,7 +463,7 @@ namespace server.Controllers
           start = a.End;
         }
 
-        if (start < ft.End)
+        if (start.AddMinutes(5) < ft.End)
         {
           difference.Add(new { Start = start, End = ft.End });
         }

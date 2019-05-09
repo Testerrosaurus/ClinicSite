@@ -48,7 +48,7 @@ export default {
     appointments() {
       if (!this.db.appointments) return []
 
-      let aps = this.db.appointments.filter(d => d.doctor === this.currentDoctorName).map(a => {
+      let aps = this.db.appointments.filter(a => a.doctor === this.currentDoctorName).map(a => {
         return {
           date: a.date,
           start: a.start,
@@ -67,7 +67,7 @@ export default {
     freeTimes() {
       if (!this.db.freeTimes) return []
 
-      let fts = this.db.freeTimes.filter(d => d.doctor === this.currentDoctorName).map(t => {
+      let fts = this.db.freeTimes.filter(ft => ft.doctor === this.currentDoctorName).map(t => {
         return {
           date: t.date,
           start: t.start,

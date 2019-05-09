@@ -115,6 +115,8 @@ export default {
           this.$router.push('/ManageFreeTime')
         } else if (response === 'Invalid info') {
           alert('Некорректная информация')
+        } else if (response === 'Intersection error') {
+          alert('Это время (или его часть) уже отмечено свободным')
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
         }
