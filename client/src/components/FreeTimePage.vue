@@ -112,7 +112,7 @@ export default {
     .then(db => {
       this.freeTimes = db.freeTimes
       this.doctors = db.doctors
-      this.appointments = db.appointments
+      this.appointments = db.appointments.filter(a => a.status === "Confirmed")
       console.log(db)
 
       let ft = db.freeTimes.find(ft => ft.id === Number(this.$route.params.id))

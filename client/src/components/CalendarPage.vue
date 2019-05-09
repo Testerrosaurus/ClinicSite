@@ -48,7 +48,7 @@ export default {
     appointments() {
       if (!this.db.appointments) return []
 
-      let aps = this.db.appointments.filter(a => a.doctor === this.currentDoctorName).map(a => {
+      let aps = this.db.appointments.filter(a => a.status === "Confirmed" && a.doctor === this.currentDoctorName).map(a => {
         return {
           date: a.date,
           start: a.start,

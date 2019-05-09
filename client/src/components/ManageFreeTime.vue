@@ -100,7 +100,7 @@ export default {
         return Number(new Date(a.date + 'T' + a.start)) - Number(new Date(b.date + 'T' + b.start))
       })
 
-      this.appointments = db.appointments
+      this.appointments = db.appointments.filter(a => a.status === "Confirmed")
       this.doctors = db.doctors
       console.log(db)
     })

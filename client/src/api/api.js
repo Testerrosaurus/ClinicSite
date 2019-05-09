@@ -161,24 +161,8 @@ export default {
     return jsonResponsePromise(apiUrl + '/appointments/getDb', options)
   },
 
-  getAppointments() {
-    let options = {
-      credentials: 'include'
-    }
 
-    return jsonResponsePromise(apiUrl + '/appointments/getAppointments', options)
-  },
 
-  
-  getFreeTimes() {
-    let options = {
-      credentials: 'include'
-    }
-
-    return jsonResponsePromise(apiUrl + '/appointments/getFreeTimes', options)
-  },
-
-  
   getAvailableDateTimes() {
     return jsonResponsePromise(apiUrl + '/appointments/getAvailableDateTimes')
   },

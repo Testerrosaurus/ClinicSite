@@ -36,10 +36,10 @@
       </b-row>
       <b-row class="my-1">
         <b-col cols="3">
-          <label for="time">Время:</label>
+          <label for="start">Начало:</label>
         </b-col>
         <b-col cols="9">
-          <b-form-input id="time" v-model="appointment.time" type="time"></b-form-input>
+          <b-form-input id="start" v-model="appointment.start" type="time"></b-form-input>
         </b-col>
       </b-row>
       <b-row class="my-1">
@@ -90,7 +90,7 @@ export default {
   },
   
   created(){
-    api.getAppointments()
+    api.getDb()
     .then(db => {
       this.appointments = db.appointments
       console.log(db)
@@ -104,15 +104,17 @@ export default {
         id: this.appointment.id,
         rowVersion: this.appointment.rowVersion,
         date: this.appointment.date,
-        time: this.appointment.time,
+        start: this.appointment.start,
         duration: this.appointment.duration,
         info: this.appointment.info
       }
 
       api.confirmAppointment(info)
       .then(response => {
-        if (response === 'Confirmed') {
+        if (response.status === 'Confirmed') {
             this.$router.push('/ManageAppointments')
+        } else if (response === 'Intersection in time') {
+          alert('Этот промежуток времени пересекается с другой подтвержденной записью')
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
         }

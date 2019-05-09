@@ -51,18 +51,42 @@ namespace server.Controllers
     }
 
 
+    private List<dynamic> CalculateIntersectingElements(dynamic newEl, IEnumerable<dynamic> list)
+    {
+      var intersectingElements = new List<dynamic>();
+
+      foreach (var el in list)
+      {
+        if (el.Id != newEl.Id && !(el.End <= newEl.Start || el.Start >= newEl.End)) // el and newEl intersect in time
+        {
+          intersectingElements.Add(el);
+        }
+      }
+
+      intersectingElements.Sort((e1, e2) => e1.Start.CompareTo(e2.Start));
+
+      return intersectingElements;
+    }
+
+
+
     [Authorize]
     [HttpGet]
     public IActionResult GetDb()
     {
-      var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).Where(a => a.Status == "Confirmed").Select(a => new {
+      var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).Select(a => new {
         Id = a.Id,
         RowVersion = a.RowVersion,
+        Status = a.Status,
         Doctor = a.Doctor.Name,
+        Patient = a.Info.PatientName,
+        Phone = a.Info.PatientPhone,
+        Info = a.Info.AdditionalInfo,
         Date = StringDate(a.Start),
         Start = StringTime(a.Start),
         End = StringTime(a.End),
-        Patient = a.Info.PatientName
+        Duration = (a.End - a.Start).TotalMinutes,
+        Created = StringDate(a.Created) + " " + StringTime(a.Created)
       });
 
       var freeTimes = _dbContext.FreeTimes.AsNoTracking().Include(a => a.Doctor).Select(ft => new {
@@ -80,57 +104,13 @@ namespace server.Controllers
     }
 
 
-    [Authorize]
-    [HttpGet]
-    public IActionResult GetAppointments()
-    {
-      var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor).Include(a => a.Info).Select(a => new {
-        Id = a.Id,
-        RowVersion = a.RowVersion,
-        Status = a.Status,
-        Doctor = a.Doctor.Name,
-        Patient = a.Info.PatientName,
-        Phone = a.Info.PatientPhone,
-        Info = a.Info.AdditionalInfo,
-        Start = StringDate(a.Start) + " " + StringTime(a.Start),
-        Date = StringDate(a.Start),
-        Time = StringTime(a.Start),
-        Duration = (a.End - a.Start).TotalMinutes,
-        Created = StringDate(a.Created) + " " + StringTime(a.Created)
-      });
-
-      var doctors = _dbContext.Doctors.Select(p => new { p.Name }).ToList();
-
-      return Ok(new { Appointments = appointments, Doctors = doctors });
-    }
-
-
-    [Authorize]
-    [HttpGet]
-    public IActionResult GetFreeTImes()
-    {
-      var freeTimes = _dbContext.FreeTimes.AsNoTracking().Include(a => a.Doctor).Select(ft => new {
-        Id = ft.Id,
-        RowVersion = ft.RowVersion,
-        Doctor = ft.Doctor.Name,
-        Date = StringDate(ft.Start),
-        Start = StringTime(ft.Start),
-        End = StringTime(ft.End)
-      });
-
-      var doctors = _dbContext.Doctors.Select(p => new { p.Name }).ToList();
-
-      return Ok(new { FreeTimes = freeTimes, Doctors = doctors });
-    }
-
-
 
     public struct AInfo
     {
       public long id;
       public byte[] rowVersion;
       public string date;
-      public string time;
+      public string start;
       public int duration;
       public string info;
     }
@@ -156,10 +136,22 @@ namespace server.Controllers
         appointment.RowVersion = info.rowVersion;
         appointment.Status = "Confirmed";
 
-        var start = DateTime.ParseExact(info.date + " " + info.time, "yyyy-MM-dd HH:mm", null);
+        var start = DateTime.ParseExact(info.date + " " + info.start, "yyyy-MM-dd HH:mm", null);
         appointment.Start = start;
         appointment.End = start.AddMinutes(info.duration);
         appointment.Info.AdditionalInfo = info.info;
+
+
+
+        var appointments = _dbContext.Appointments.AsNoTracking().Include(ft => ft.Doctor)
+          .Where(a => a.Status == "Confirmed" && a.Doctor.Name == appointment.Doctor.Name && a.Start.Date == appointment.Start.Date);
+
+        var intersectingElements = CalculateIntersectingElements(appointment, appointments);
+        if (intersectingElements.Count > 0)
+        {
+          return Ok("Intersection in time");
+        }
+
 
         _dbContext.Appointments.Update(appointment);
         _dbContext.SaveChanges();
@@ -246,24 +238,6 @@ namespace server.Controllers
       return Ok("Removed");
     }
 
-
-
-    private List<dynamic> CalculateIntersectingElements(dynamic newEl, IEnumerable<dynamic> list)
-    {
-      var intersectingElements = new List<dynamic>();
-
-      foreach (var el in list)
-      {
-        if (el.Id != newEl.Id && !(el.End <= newEl.Start || el.Start >= newEl.End)) // el and newEl intersect in time
-        {
-          intersectingElements.Add(el);
-        }
-      }
-
-      intersectingElements.Sort((e1, e2) => e1.Start.CompareTo(e2.Start));
-
-      return intersectingElements;
-    }
 
     public struct AInfo2
     {

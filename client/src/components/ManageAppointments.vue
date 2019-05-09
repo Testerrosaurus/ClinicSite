@@ -60,6 +60,7 @@ export default {
       fields: [
           { key: 'doctor', label: 'Врач' },
           { key: 'patient', label: 'ФИО пациента' },
+          { key: 'date', label: 'Дата' },
           { key: 'start', label: 'Начало'},
           { key: 'duration', label: 'Длительность' },
           { key: 'status-rus', label: 'Подтверждено' },
@@ -83,8 +84,8 @@ export default {
     }
   },
   
-  created(){
-    api.getAppointments()
+  created() {
+    api.getDb()
     .then(db => {
       this.appointments = db.appointments.sort((a, b) => {
         return Number(new Date(a.date + 'T' + a.start)) - Number(new Date(b.date + 'T' + b.start))
@@ -113,7 +114,7 @@ export default {
         id: appointment.id,
         rowVersion: appointment.rowVersion,
         date: appointment.date,
-        time: appointment.time,
+        start: appointment.start,
         duration: appointment.duration
       }
 
@@ -122,6 +123,8 @@ export default {
         if (response.status === 'Confirmed') {
           this.appointments.find(a => a.id === appointment.id).status = 'Confirmed'
           this.appointments.find(a => a.id === appointment.id).rowVersion = response.newRowVersion
+        } else if (response === 'Intersection in time') {
+          alert('Этот промежуток времени пересекается с другой подтвержденной записью')
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
         }
