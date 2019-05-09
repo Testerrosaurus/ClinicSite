@@ -39,7 +39,7 @@ namespace server.Controllers
       var message = update.Message;
       if (message?.Type == MessageType.Text)
       {
-        await _botService.Client.SendTextMessageAsync(message.Chat.Id, message.Text + "  TestTAA");
+        await _botService.Client.SendTextMessageAsync(message.Chat.Id, message.Text + "  Test Echo");
       }
     }
   }

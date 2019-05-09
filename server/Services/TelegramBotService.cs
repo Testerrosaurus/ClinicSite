@@ -14,7 +14,10 @@ namespace server.Services
   public class TelegramBotService
   {
     public TelegramBotClient Client { get; }
-    public long ChatId { get; }
+
+    private long _groupChatId;
+    private bool _dev = false;
+
 
     public TelegramBotService(IHostingEnvironment env)
     {
@@ -24,7 +27,7 @@ namespace server.Services
         appDir = appDir + "/../../..";
       }
 
-      ChatId = long.Parse(System.IO.File.ReadAllText(appDir + "/Data/telegram_bot_group_chat_id.json").Trim());
+      _groupChatId = long.Parse(System.IO.File.ReadAllText(appDir + "/Data/telegram_bot_group_chat_id.json").Trim());
 
 
       string telegram_bot_token = System.IO.File.ReadAllText(appDir + "/Data/telegram_bot_token.json").Trim();
@@ -37,6 +40,18 @@ namespace server.Services
       {
         Client.SetWebhookAsync("https://" + site_base_url + "/api/telegram").Wait();
       }
+      else
+      {
+        _dev = true;
+      }
+    }
+
+    
+    public async Task SendMessageToGroupAsync(string msg)
+    {
+      if (_dev) return;
+
+      await Client.SendTextMessageAsync(_groupChatId, msg);
     }
   }
 }

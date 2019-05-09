@@ -387,6 +387,59 @@ namespace server.Controllers
 
 
 
+    private string GetFreeTimesString(string doctorName, DateTime date)
+    {
+      var appointments = _dbContext.Appointments.AsNoTracking().Include(a => a.Doctor)
+        .Where(a => a.Status == "Confirmed" && a.Doctor.Name == doctorName && a.Start.Date == date)
+        .Select(a => new { Start = a.Start, End = a.End });
+
+      var freeTimes = _dbContext.FreeTimes.AsNoTracking().Include(ft => ft.Doctor)
+        .Where(ft => ft.Doctor.Name == doctorName && ft.Start.Date == date)
+        .Select(ft => new { Start = ft.Start, End = ft.End });
+
+
+
+      var difference = new[] { new { Start = new DateTime(), End = new DateTime() } }.ToList();
+      difference.Clear();
+
+      foreach (var ft in freeTimes)
+      {
+        var start = ft.Start;
+
+        foreach (var a in appointments)
+        {
+          if (a.End <= ft.Start || a.Start >= ft.End) continue;
+
+          if (start < a.Start)
+          {
+            difference.Add(new { Start = start, End = a.Start });
+          }
+
+          start = a.End;
+        }
+
+        if (start < ft.End)
+        {
+          difference.Add(new { Start = start, End = ft.End });
+        }
+      }
+
+      difference.Sort((e1, e2) => e1.Start.CompareTo(e2.Start));
+
+
+
+      string res = "";
+
+      foreach (var range in difference)
+      {
+        if (res != "") res += ", ";
+
+        res += StringTime(range.Start) + " - " + StringTime(range.End);
+      }
+
+      return res;
+    }
+
     public struct AppointmentInfo
     {
       public string patient;
@@ -419,11 +472,14 @@ namespace server.Controllers
       _dbContext.Appointments.Attach(appointment);
       _dbContext.SaveChanges();
 
-      await _botService.Client.SendTextMessageAsync(_botService.ChatId, "Не подтвержденная запись\nФИО пациента: " + info.patient + "\nНомер телефона: " + info.phone
-          + "\nВрач: " + info.doctor + "\nДата: " + info.date + "\nВремя: " + info.time
-          + "\nСвободное время: " + "15:00 - 16:00, 15:00 - 16:00, 15:00 - 16:00, 15:00 - 16:00" + "\nАдминка линк: https://" + Request.Host + "/ManageAppointments");
-      
 
+      var freeTimesString = GetFreeTimesString(info.doctor, start.Date);
+
+      await _botService.SendMessageToGroupAsync("Не подтвержденная запись\nФИО пациента: " + info.patient + "\nНомер телефона: " + info.phone
+          + "\nВрач: " + info.doctor + "\nДата: " + info.date + "\nВремя: " + info.time
+          + "\nСвободное время: " + freeTimesString + "\nАдминка линк: https://" + Request.Host + "/ManageAppointments");
+      
+      
      
       return Ok("Created");
     }
