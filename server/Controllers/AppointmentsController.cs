@@ -248,19 +248,21 @@ namespace server.Controllers
 
 
 
-    private bool AreIntersectingInTime(dynamic newEl, IEnumerable<dynamic> list)
+    private List<dynamic> CalculateIntersectingElements(dynamic newEl, IEnumerable<dynamic> list)
     {
-      int count = 0;
+      var intersectingElements = new List<dynamic>();
 
       foreach (var el in list)
       {
         if (el.Id != newEl.Id && !(el.End <= newEl.Start || el.Start >= newEl.End)) // el and newEl intersect in time
         {
-          count++;
+          intersectingElements.Add(el);
         }
       }
 
-      return count != 0;
+      intersectingElements.Sort((e1, e2) => e1.Start.CompareTo(e2.Start));
+
+      return intersectingElements;
     }
 
     public struct AInfo2
@@ -303,15 +305,34 @@ namespace server.Controllers
         freeTime.End = DateTime.ParseExact(info.date + " " + info.end, "yyyy-MM-dd HH:mm", null);
 
 
+
         var freeTimes = _dbContext.FreeTimes.AsNoTracking().Include(ft => ft.Doctor)
           .Where(ft => ft.Doctor.Name == freeTime.Doctor.Name && ft.Start.Date == freeTime.Start.Date);
 
 
-        bool intersecting = AreIntersectingInTime(freeTime, freeTimes);
-        if (intersecting)
+        var intersectingElements = CalculateIntersectingElements(freeTime, freeTimes);
+        if (intersectingElements.Count > 0)
         {
-          return Ok("Intersection error");
+          var newFt = new FreeTime{ Doctor = freeTime.Doctor };
+          newFt.Start = intersectingElements.First().Start < freeTime.Start ? intersectingElements.First().Start : freeTime.Start;
+          newFt.End = intersectingElements.Last().End > freeTime.End ? intersectingElements.Last().End : freeTime.End;
+
+          if (!adding)
+          {
+            _dbContext.FreeTimes.Remove(freeTime);
+          }
+          _dbContext.RemoveRange(intersectingElements.Select(el => new FreeTime { Id = el.Id, RowVersion = el.RowVersion }));
+
+
+          _dbContext.FreeTimes.Add(newFt);
+          _dbContext.SaveChanges();
+
+          return Ok("Success");
+
+          //return Ok("Intersection error");
         }
+
+
 
         if (adding)
         {

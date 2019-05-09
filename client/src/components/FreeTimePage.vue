@@ -55,11 +55,42 @@
 <script>
 import api from '../api/api.js'
 
+function calcualteIntersectedAppointments(appointments, ft) {
+  let aps = appointments.filter(a => a.doctor === ft.doctor && a.date === ft.date).map(a => {
+    return {
+      date: a.date,
+      start: a.start,
+      end: a.end,
+      status: a.patient,
+      startStamp: Number(new Date(a.date + 'T' + a.start)),
+      endStamp: Number(new Date(a.date + 'T' + a.end))
+    }
+  })
+  .sort((a, b) => {
+    return a.startStamp - b.startStamp
+  })
+
+
+  let ftStartStamp = Number(new Date(ft.date + 'T' + ft.start))
+  let ftEndStamp = Number(new Date(ft.date + 'T' + ft.end))
+
+  let intersectedAppointments = []
+
+  aps.forEach(a => {
+    if (!(a.endStamp <= ftStartStamp || a.startStamp >= ftEndStamp)) {  // a and ft intersect in time
+      intersectedAppointments.push(a)
+    }
+  })
+
+  return intersectedAppointments
+}
+
 export default {
   name: 'EditPage',
 
   data() {
     return {
+      appointments: [],
       freeTimes: [],
       doctors: [],
 
@@ -77,10 +108,11 @@ export default {
   },
   
   created(){
-    api.getFreeTimes()
+    api.getDb()
     .then(db => {
       this.freeTimes = db.freeTimes
       this.doctors = db.doctors
+      this.appointments = db.appointments
       console.log(db)
 
       let ft = db.freeTimes.find(ft => ft.id === Number(this.$route.params.id))
@@ -100,6 +132,70 @@ export default {
     },
 
     addHandler() {
+      if (this.freeTime.id === -1) {
+        this.sendAdd()
+      } else {
+        let oldFt = this.freeTimes.find(ft => ft.id === Number(this.$route.params.id))
+        let newFt = this.freeTime
+
+        let oldFtStartStamp = Number(new Date(oldFt.date + 'T' + oldFt.start))
+        let oldFtEndStamp = Number(new Date(oldFt.date + 'T' + oldFt.end))
+
+        let newFtStartStamp = Number(new Date(newFt.date + 'T' + newFt.start))
+        let newFtEndStamp = Number(new Date(newFt.date + 'T' + newFt.end))
+
+
+
+        let intersectedAppointments = []
+        if (oldFtEndStamp <= newFtStartStamp || oldFtStartStamp >= newFtEndStamp) // don't intersect
+        {
+          intersectedAppointments = calcualteIntersectedAppointments(this.appointments, oldFt) // check oldFt which is getting deleted
+        } 
+        else
+        {
+          let intersectedLeft = []
+          if (oldFtStartStamp <= newFtStartStamp) {
+            let deletedLeft = { doctor: oldFt.doctor, date: oldFt.date, start: oldFt.start, end: newFt.start }
+            intersectedLeft = calcualteIntersectedAppointments(this.appointments, deletedLeft)
+          }
+
+          let intersectedRight = []
+          if (oldFtEndStamp >= newFtEndStamp) {
+            let deletedRight = { doctor: oldFt.doctor, date: oldFt.date, start: newFt.end, end: oldFt.end }
+            intersectedRight = calcualteIntersectedAppointments(this.appointments, deletedRight)
+          }
+
+          intersectedAppointments = intersectedLeft.concat(intersectedRight)
+        }
+
+
+
+        if (intersectedAppointments.length > 0) {
+          this.$bvModal.msgBoxConfirm('В удаленной части старого свободного времени уже имеются подтвержденные записи.\nПродолжить?', {
+            title: 'Подтвердите изменение',
+            size: 'sm',
+            buttonSize: 'sm',
+            okVariant: 'danger',
+            okTitle: 'Да',
+            cancelTitle: 'Нет',
+            footerClass: 'p-2',
+            hideHeaderClose: false,
+            centered: true,
+            noCloseOnBackdrop: true,
+            noCloseOnEsc: true
+          })
+          .then(value => {
+            if (value) {
+              this.sendAdd()
+            }
+          })
+        } else {
+          this.sendAdd()
+        }
+      }
+    },
+
+    sendAdd() {
       let info = {
         id: this.freeTime.id,
         rowVersion: this.freeTime.rowVersion,
@@ -115,8 +211,6 @@ export default {
           this.$router.push('/ManageFreeTime')
         } else if (response === 'Invalid info') {
           alert('Некорректная информация')
-        } else if (response === 'Intersection error') {
-          alert('Это время (или его часть) уже отмечено свободным')
         } else if (response === 'Fail') {
           alert('Fail: Item was modified since last page load')
         }
