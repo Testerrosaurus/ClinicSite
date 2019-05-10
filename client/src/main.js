@@ -26,7 +26,7 @@ api.isLoggedIn()
       // if not, redirect to login page.
       if (!store.state.loggedIn) {
         next({
-          path: '/LoginForm',
+          path: '/LoginForm', query: { redirect: to.fullPath }
         })
       } else {
         next()

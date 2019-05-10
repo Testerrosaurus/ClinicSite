@@ -36,7 +36,7 @@ export default {
       .then(response => {
         if (response === 'Success') {
           this.setLoggedIn(true)
-          this.$router.push({path: '/'})
+          this.$router.push(this.$route.query.redirect || '/')
         } else if (response === 'Fail') {
           alert('Invalid login information')
         }     

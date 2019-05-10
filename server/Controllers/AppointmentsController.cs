@@ -517,7 +517,7 @@ namespace server.Controllers
 
       await _botService.SendMessageToGroupAsync("Не подтвержденная запись\nФИО пациента: " + info.patient + "\nНомер телефона: " + info.phone
           + "\nВрач: " + info.doctor + "\nДата: " + info.date + "\nВремя: " + info.time
-          + "\nСвободное время: " + freeTimesString + "\nАдминка линк: https://" + Request.Host + "/ManageAppointments");
+          + "\nСвободное время: " + freeTimesString + "\nАдминка линк: https://" + Request.Host + "/EditPage/" + appointment.Id);
       
       
      

@@ -1,5 +1,9 @@
 import 'whatwg-fetch'
 
+import store from '../store'
+import router from '../router'
+
+
 const debug = process.env.NODE_ENV !== 'production'
 const apiUrl = debug ? 'http://localhost:5000/api' : '/api'
 
@@ -33,10 +37,19 @@ function jsonResponsePromise(url, options) {
   return new Promise(resolve => {
     fetch(url, options)
     .then(response => {
-      if (response.ok)
+      if (response.ok) {
         return response.json()
-      else
-        throw new Error(response.status + ' ' + response.statusText)
+      }
+      else {
+        if (response.status === 401) {
+          store.commit('setLoggedIn', false)
+          router.push({
+            path: '/LoginForm', query: { redirect: router.history.current.fullPath }
+          })
+        } else {
+          throw new Error(response.status + ' ' + response.statusText)
+        }
+      }
     })
     .catch(error => {
       throw new Error(error.message)
