@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2>Registration page</h2>
-    <button @click="registerHandler">Зарегистрироваться</button>
+    <b-button @click="registerHandler">Зарегистрироваться</b-button>
   </div>
 </template>
 

@@ -1,24 +1,21 @@
 <template>
   <div id="app">
-    <template v-if="loggedIn">
-      <button  @click="logoutHandler">Выйти</button>
-      <div class="nav">
-        <router-link to="/ManageAppointments">Управление записями</router-link> |
-        <router-link to="/ManageFreeTime">Управление свободным временем</router-link> |
-        <router-link to="/CalendarPage">Календарь</router-link>
-      </div>
-    </template>
-    <div v-else class="nav">
-      <router-link to="/LoginForm">Войти</router-link> |
-      <router-link to="/RegisterAccount">Зарегистрироваться</router-link>
-    </div>
+    <b-nav tabs small align="center">
+      <b-nav-item to="/">Домой</b-nav-item>
+      <b-nav-item to="/SetAppointment">Записаться на прием</b-nav-item>
+      <template v-if="!loggedIn">
+        <b-nav-item to="/LoginForm">Войти</b-nav-item>
+        <b-nav-item to="/RegisterAccount" class="ml-1">Зарегистрироваться</b-nav-item>
+      </template>
+      <template v-else>
+        <b-nav-item to="/ManageAppointments">Управление записями</b-nav-item>
+        <b-nav-item to="/ManageFreeTime">Управление свободным временем</b-nav-item>
+        <b-nav-item to="/CalendarPage">Календарь</b-nav-item>
+        <b-button @click="logoutHandler" variant="info">Выйти</b-button>
+      </template>
+    </b-nav>
 
-    <div class="nav">
-      <router-link to="/">Домой</router-link>|
-      <router-link to="/SetAppointment">Записаться на прием</router-link>
-    </div>
-
-    <router-view/>
+    <router-view />
   </div>
 </template>
 
