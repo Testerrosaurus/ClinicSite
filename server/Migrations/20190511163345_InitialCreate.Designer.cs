@@ -10,8 +10,8 @@ using server.Models;
 namespace server.Migrations
 {
     [DbContext(typeof(AppointmentsContext))]
-    [Migration("20190507095603_AddedFreeTimeRowStamp")]
-    partial class AddedFreeTimeRowStamp
+    [Migration("20190511163345_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -27,13 +27,13 @@ namespace server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("CalendarId");
-
                     b.Property<DateTime>("Created");
 
                     b.Property<long?>("DoctorId");
 
                     b.Property<DateTime>("End");
+
+                    b.Property<string>("EventId");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()

@@ -152,6 +152,10 @@ namespace server.Controllers
           return Ok("Intersection in time");
         }
 
+        if (!update)
+        {
+          appointment.EventId = Guid.NewGuid().ToString("N");
+        }
 
         _dbContext.Appointments.Update(appointment);
         _dbContext.SaveChanges();
@@ -161,6 +165,7 @@ namespace server.Controllers
 
         Event newEvent = new Event()
         {
+          Id = appointment.EventId,
           Summary = appointment.Info.PatientName + " - " + appointment.Doctor.Name,
           Description = "Procedure: " + appointment.Info.AdditionalInfo +
             "\nDoctor Name: " + appointment.Doctor.Name + "\nPatient Name: " + appointment.Info.PatientName,
@@ -181,20 +186,14 @@ namespace server.Controllers
 
         if (update)
         {
-          var calendarId = appointment.CalendarId;
-          var request = _calendar.Service.Events.Update(newEvent, _calendar.CalendarId, calendarId);
+          var eventId = appointment.EventId;
+          var request = _calendar.Service.Events.Update(newEvent, _calendar.CalendarId, eventId);
           Event createdEvent = request.Execute();
         }
         else
         {
           var request = _calendar.Service.Events.Insert(newEvent, _calendar.CalendarId);
           Event createdEvent = await request.ExecuteAsync();
-
-          appointment.CalendarId = createdEvent.Id;
-          _dbContext.Appointments.Update(appointment);
-          _dbContext.SaveChanges();
-
-          newRowVersion = appointment.RowVersion;
         }
       }
       catch (DbUpdateConcurrencyException)
@@ -225,8 +224,8 @@ namespace server.Controllers
 
         if (appointment.Status == "Confirmed")
         {
-          var calendarId = appointment.CalendarId;
-          var request = _calendar.Service.Events.Delete(_calendar.CalendarId, calendarId);
+          var eventId = appointment.EventId;
+          var request = _calendar.Service.Events.Delete(_calendar.CalendarId, eventId);
           await request.ExecuteAsync();
         }
       }

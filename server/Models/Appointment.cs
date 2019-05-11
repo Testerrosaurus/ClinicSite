@@ -41,6 +41,7 @@ namespace server.Models
   }
 
 
+
   public class Appointment
   {
     [Key]
@@ -57,7 +58,8 @@ namespace server.Models
     public string Status { get; set; }
     public DateTime Created { get; set; }
 
-    public string CalendarId { get; set; }
+
+    public string EventId { get; set; }
 
 
     [Timestamp]

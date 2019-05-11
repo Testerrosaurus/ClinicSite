@@ -29,6 +29,11 @@ namespace server
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
+      services.AddHttpsRedirection(options => {
+        options.HttpsPort = 443;
+      });
+
+
       services.AddSingleton<Services.TelegramBotService>();
 
       services.AddDbContext<AppointmentsContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
@@ -79,6 +84,13 @@ namespace server
         app.UseDeveloperExceptionPage();
         app.UseCors(builder => builder.WithOrigins("http://localhost:8080").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
       }
+      else
+      {
+        //app.UseHsts();
+      }
+
+      //app.UseHttpsRedirection();
+
 
       app.Use(async (context, next) =>
       {

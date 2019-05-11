@@ -25,13 +25,13 @@ namespace server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("CalendarId");
-
                     b.Property<DateTime>("Created");
 
                     b.Property<long?>("DoctorId");
 
                     b.Property<DateTime>("End");
+
+                    b.Property<string>("EventId");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
