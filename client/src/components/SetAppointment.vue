@@ -65,12 +65,25 @@
       </b-row>
       <b-row class="my-4">
         <b-col cols="12">
-          <b-button variant="success" @click="btn1ClickHandler">Отправить</b-button>
+          <b-button id="send" variant="success" @click="btn1ClickHandler">Отправить</b-button>
         </b-col>
       </b-row>
-      <b-modal id="modal" size= "sm" centered title="Title text" no-close-on-backdrop no-close-on-esc ok-only>
-        <p class="my-4">Обработка информации Обработка информации Обработка информации Обработка информации Обработка информации Обработка информации Обработка информации</p>
-      </b-modal>
+
+      <b-popover target="send" :show.sync="popoverShow" placement="rightbottom">
+        <template slot="title">
+          <b-button @click="onClose" class="close" aria-label="Close">
+            <span class="d-inline-block" aria-hidden="true">&times;</span>
+          </b-button>
+          Notification title
+        </template>
+
+        <div>
+          Обработка информации Обработка информации Обработка информации Обработка информации Обработка информации Обработка информации Обработка информации
+          <br />
+          <b-button @click="onOk" size="sm" variant="primary" class="float-right">Ok</b-button>
+        </div>
+      </b-popover>
+
     </b-container>
   </div>
 </template>
@@ -83,6 +96,9 @@ export default {
 
   data() {
     return {
+      popoverShow: false,
+
+
       patientName: '',
       patientPhone: '',
 
@@ -126,10 +142,21 @@ export default {
   },
 
   mounted() {
-    this.$bvModal.show('modal')
+    setTimeout(() => {
+      this.popoverShow = true
+    }, 1000)
   },
 
   methods: {
+    onClose() {
+      this.popoverShow = false
+    },
+
+    onOk() {
+      this.popoverShow = false
+    },
+
+
     doctorChanged(event) {
       this.doctorName = event
       this.date = ''
