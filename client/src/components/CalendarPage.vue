@@ -8,8 +8,8 @@
         </b-col>
         <b-col cols="9">
           <b-form-select id="doctor" :value="currentDoctorName" @change="doctorChanged($event)">
-            <option value="" disabled="true">
-              Выберите врача
+            <option value="">
+              Все
             </option>
             <option v-for="doctor in db.doctors" :key="doctor.name" :value="doctor.name">
               {{doctor.name}}
@@ -19,12 +19,24 @@
       </b-row>
     </b-container>
 
-    <b-table striped :items="timeRanges" :fields="fields"></b-table>
+    <b-table striped :items="timeRanges" :fields="fields" responsive class="text-nowrap">
+      <template slot="date-msg" slot-scope="data">
+        {{ dateMsg(data.item.date) }}
+      </template>
+    </b-table>
   </div>
 </template>
 
 <script>
 import api from '../api/api.js'
+
+function appendLeadingZeroes(n){
+  if(n <= 9) {
+    return "0" + n;
+  }
+
+  return n
+}
 
 export default {
   name: 'CalendarPage',
@@ -33,10 +45,11 @@ export default {
     return {
       db: {},
       currentDoctorName: '',
+      allTimeRanges: [],
 
 
       fields: [
-        { key: 'date', label: 'Дата' },
+        { key: 'date-msg', label: 'Дата' },
         { key: 'start', label: 'Начало' },
         { key: 'end', label: 'Конец' },
         { key: 'status', label: 'Статус' },
@@ -45,86 +58,8 @@ export default {
   },
 
   computed: {
-    appointments() {
-      if (!this.db.appointments) return []
-
-      let aps = this.db.appointments.filter(a => a.status === "Confirmed" && a.doctor === this.currentDoctorName).map(a => {
-        return {
-          date: a.date,
-          start: a.start,
-          end: a.end,
-          status: a.patient,
-          startStamp: Number(new Date(a.date + 'T' + a.start)),
-          endStamp: Number(new Date(a.date + 'T' + a.end))
-        }
-      })
-
-      return aps.sort((a, b) => {
-        return a.startStamp - b.startStamp
-      })
-    },
-
-    freeTimes() {
-      if (!this.db.freeTimes) return []
-
-      let fts = this.db.freeTimes.filter(ft => ft.doctor === this.currentDoctorName).map(t => {
-        return {
-          date: t.date,
-          start: t.start,
-          end: t.end,
-          startStamp: Number(new Date(t.date + 'T' + t.start)),
-          endStamp: Number(new Date(t.date + 'T' + t.end))
-        }
-      }).sort((a, b) => {
-        return a.startStamp - b.startStamp
-      })
-
-
-      let res = []
-
-      fts.forEach(ft => {
-        let sStamp = ft.startStamp
-        let s = ft.start
-
-        this.appointments.forEach(a => {
-          if (a.endStamp <= ft.startStamp || a.startStamp >= ft.endStamp) {
-            return // continue
-          }
-
-          if (sStamp + 5 * 60 * 1000 < a.startStamp) {
-            res.push({
-              date: ft.date,
-              start: s,
-              end: a.start,
-              status: 'Свободно',
-              startStamp: sStamp,
-              endStamp: a.startStamp
-            })
-          }
-
-          sStamp = a.endStamp
-          s = a.end
-        })
-
-        if (sStamp + 5 * 60 * 1000 < ft.endStamp) {
-          res.push({
-            date: ft.date,
-            start: s,
-            end: ft.end,
-            status: 'Свободно',
-            startStamp: sStamp,
-            endStamp: ft.endStamp
-          })
-        }
-      })
-
-      return res
-    },
-
     timeRanges() {
-      let res =  this.appointments.concat(this.freeTimes).sort((a, b) => {
-        return a.startStamp - b.startStamp
-      })
+      let res = this.allTimeRanges.filter(tr => (this.currentDoctorName === '' || this.currentDoctorName === tr.doctor))
       
       if (res.length === 0) return []
 
@@ -137,6 +72,7 @@ export default {
             date: '',
             start: '',
             end: '',
+            doctor: '',
             status: '',
             startStamp: Number(new Date(t.date + 'T' + '04:00')),
             endStamp: Number(new Date(t.date + 'T' + '04:00')),
@@ -161,13 +97,110 @@ export default {
     .then(db => {
       this.db = db
       console.log(db)
+
+      let res = []
+      this.db.doctors.forEach(d => {
+        res =  res.concat(this.appointments(d.name),this.freeTimes(d.name))
+      })
+
+      this.allTimeRanges = res.sort((a, b) => {
+        return a.startStamp - b.startStamp
+      })
     })
   },
 
   methods: {
+    dateMsg(date) {
+      if (date === '') return ''
+
+      let d = new Date(date)
+      return d.getDate() + '.' + appendLeadingZeroes(d.getMonth() + 1) + '.' + d.getFullYear()
+    },
+
     doctorChanged(event) {
       this.currentDoctorName = event
     },
+
+
+    appointments(doctorName) {
+      if (!this.db.appointments) return []
+
+      let aps = this.db.appointments.filter(a => a.status === "Confirmed" && a.doctor === doctorName).map(a => {
+        return {
+          date: a.date,
+          start: a.start,
+          end: a.end,
+          doctor: a.doctor,
+          status: a.patient,
+          startStamp: Number(new Date(a.date + 'T' + a.start)),
+          endStamp: Number(new Date(a.date + 'T' + a.end))
+        }
+      })
+
+      return aps.sort((a, b) => {
+        return a.startStamp - b.startStamp
+      })
+    },
+
+    freeTimes(doctorName) {
+      if (!this.db.freeTimes) return []
+
+      let fts = this.db.freeTimes.filter(ft => ft.doctor === doctorName).map(t => {
+        return {
+          date: t.date,
+          start: t.start,
+          end: t.end,
+          doctor: doctorName,
+          startStamp: Number(new Date(t.date + 'T' + t.start)),
+          endStamp: Number(new Date(t.date + 'T' + t.end))
+        }
+      }).sort((a, b) => {
+        return a.startStamp - b.startStamp
+      })
+
+
+      let res = []
+
+      fts.forEach(ft => {
+        let sStamp = ft.startStamp
+        let s = ft.start
+
+        this.appointments(doctorName).forEach(a => {
+          if (a.endStamp <= ft.startStamp || a.startStamp >= ft.endStamp) {
+            return // continue
+          }
+
+          if (sStamp + 5 * 60 * 1000 < a.startStamp) {
+            res.push({
+              date: ft.date,
+              start: s,
+              end: a.start,
+              doctor: doctorName,
+              status: 'Свободно',
+              startStamp: sStamp,
+              endStamp: a.startStamp
+            })
+          }
+
+          sStamp = a.endStamp
+          s = a.end
+        })
+
+        if (sStamp + 5 * 60 * 1000 < ft.endStamp) {
+          res.push({
+            date: ft.date,
+            start: s,
+            end: ft.end,
+            doctor: doctorName,
+            status: 'Свободно',
+            startStamp: sStamp,
+            endStamp: ft.endStamp
+          })
+        }
+      })
+
+      return res
+    }
   }
 }
 </script>

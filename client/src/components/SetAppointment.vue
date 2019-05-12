@@ -43,7 +43,7 @@
               Выберите дату
             </option>
             <option v-for="date in datesList" :key="date" :value="date">
-              {{date}}
+              {{dateMsg(date)}}
             </option>
           </b-form-select>
         </b-col>
@@ -69,7 +69,7 @@
         </b-col>
       </b-row>
 
-      <b-popover target="send" :show.sync="popoverShow" placement="rightbottom">
+      <b-popover target="teste" :show.sync="popoverShow" placement="topright">
         <template slot="title">
           <b-button @click="onClose" class="close" aria-label="Close">
             <span class="d-inline-block" aria-hidden="true">&times;</span>
@@ -85,11 +85,20 @@
       </b-popover>
 
     </b-container>
+    <div id ="teste" class="popover-anchor fixed-bottom"></div>
   </div>
 </template>
 
 <script>
 import api from '../api/api.js'
+
+function appendLeadingZeroes(n){
+  if(n <= 9) {
+    return "0" + n;
+  }
+
+  return n
+}
 
 export default {
   name: 'SetAppointment',
@@ -148,6 +157,11 @@ export default {
   },
 
   methods: {
+    dateMsg(date) {
+      let d = new Date(date)
+      return d.getDate() + '.' + appendLeadingZeroes(d.getMonth() + 1) + '.' + d.getFullYear()
+    },
+
     onClose() {
       this.popoverShow = false
     },

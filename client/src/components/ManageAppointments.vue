@@ -31,9 +31,12 @@
       </b-row>
     </b-container>
 
-    <b-table :items="filteredAppointments" :fields="fields">
-      <template slot="status-rus" slot-scope="data">
+    <b-table :items="filteredAppointments" :fields="fields" responsive class="text-nowrap">
+      <template slot="status-msg" slot-scope="data">
         {{ statusMsg(data.item.status) }}
+      </template>
+      <template slot="date-msg" slot-scope="data">
+        {{ dateMsg(data.item.date) }}
       </template>
       <template slot="actions" slot-scope="row">
         <b-button size="sm" @click="editHandler(row.item)" class="mr-2">Изменить</b-button>
@@ -48,6 +51,14 @@
 <script>
 import api from '../api/api.js'
 
+function appendLeadingZeroes(n){
+  if(n <= 9) {
+    return "0" + n;
+  }
+  
+  return n
+}
+
 export default {
   name: 'ManageAppointments',
 
@@ -60,10 +71,10 @@ export default {
       fields: [
           { key: 'doctor', label: 'Врач' },
           { key: 'patient', label: 'ФИО пациента' },
-          { key: 'date', label: 'Дата' },
+          { key: 'date-msg', label: 'Дата' },
           { key: 'start', label: 'Начало'},
           { key: 'duration', label: 'Длительность' },
-          { key: 'status-rus', label: 'Подтверждено' },
+          { key: 'status-msg', label: 'Подтверждено' },
           //{ key: 'created', label: 'Создан'},
           { key: 'actions', label: 'Действия' }
         ],
@@ -99,6 +110,11 @@ export default {
     statusMsg(status) {
       if (status === "Confirmed") return "Да"
       else return "Нет"
+    },
+
+    dateMsg(date) {
+      let d = new Date(date)
+      return d.getDate() + '.' + appendLeadingZeroes(d.getMonth() + 1) + '.' + d.getFullYear()
     },
 
     doctorChanged(event) {

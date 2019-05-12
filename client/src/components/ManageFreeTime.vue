@@ -24,7 +24,10 @@
       </b-row>
     </b-container>
 
-    <b-table :items="filteredFreeTimes" :fields="fields">
+    <b-table :items="filteredFreeTimes" :fields="fields" responsive class="text-nowrap">
+      <template slot="date-msg" slot-scope="data">
+        {{ dateMsg(data.item.date) }}
+      </template>
       <template slot="actions" slot-scope="row">
         <b-button size="sm" @click="editHandler(row.item)" class="mr-2">Изменить</b-button>
         <b-button size="sm" @click="removeHandler(row.item)">Удалить</b-button>
@@ -35,6 +38,14 @@
 
 <script>
 import api from '../api/api.js'
+
+function appendLeadingZeroes(n){
+  if(n <= 9) {
+    return "0" + n;
+  }
+
+  return n
+}
 
 function calcualteIntersectedAppointments(appointments, ft) {
   let aps = appointments.filter(a => a.doctor === ft.doctor && a.date === ft.date).map(a => {
@@ -79,7 +90,7 @@ export default {
 
       fields: [
           { key: 'doctor', label: 'Врач'},
-          { key: 'date', label: 'Дата'},
+          { key: 'date-msg', label: 'Дата'},
           { key: 'start', label: 'Начало'},
           { key: 'end', label: 'Конец' },
           { key: 'actions', label: 'Действия' }
@@ -107,6 +118,11 @@ export default {
   },
 
   methods: {
+    dateMsg(date) {
+      let d = new Date(date)
+      return d.getDate() + '.' + appendLeadingZeroes(d.getMonth() + 1) + '.' + d.getFullYear()
+    },
+
     doctorChanged(event) {
       this.currentDoctorName = event
     },
